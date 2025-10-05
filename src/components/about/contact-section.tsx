@@ -67,12 +67,12 @@ export default function ContactSection() {
         </div>
 
         {/* Google Maps */}
-        <div className="w-full h-80 rounded-xl overflow-hidden shadow-md">
+        <div className="w-full h-100 rounded-xl overflow-hidden shadow-md">
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3959.7816968565073!2d111.4789611759126!3d-7.033226092966623!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e79bf5e00d4c113%3A0x54d366d06fba5b05!2sJl.%20Ontorejo%20No.32%2C%20Grabagan%2C%20Kuwu%2C%20Kec.%20Kuwu%2C%20Kabupaten%20Ponorogo%2C%20Jawa%20Timur%2063419!5e0!3m2!1sid!2sid!4v1696435965731!5m2!1sid!2sid"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3952.1751210755924!2d111.4661535750877!3d-7.876737692145585!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e799f303b1ebb31%3A0xf1869ea0f32a2068!2sJoyo%20Tech!5e0!3m2!1sen!2sid!4v1759633957960!5m2!1sen!2sid"
             width="100%"
             height="100%"
-            style={{ border: 0 }}
+            style={{border:0}}
             allowFullScreen
             loading="lazy"
           ></iframe>
