@@ -1,14 +1,15 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation"; // <-- untuk cek path saat ini
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
-const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const pathname = usePathname(); // mendapatkan URL saat ini
+export default function Navbar() {
+       const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -19,6 +20,21 @@ const Navbar = () => {
     { name: "Hubungi Kami", href: "/contact" },
   ];
 
+  // Tutup menu saat pindah halaman
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
+  // Tutup menu saat klik di luar area menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   return (
     <nav className="bg-white shadow-md fixed w-full z-50 p-6">
       <div className="container flex items-center justify-between text-center md:justify-between md:mx-auto lg:px-16">
@@ -34,21 +50,13 @@ const Navbar = () => {
         {/* Desktop Menu */}
         <div className="hidden md:flex space-x-8 text-center">
           {navigation.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`text-sm font-medium ${
-                pathname === item.href
-                  ? "text-red-600" // <-- aktif merah
-                  : "text-gray-700 hover:text-red-600"
-              }`}
-            >
+            <Link key={item.name} href={item.href} className={`text-sm font-medium ${pathname === item.href ? "text-red-600" : "text-gray-700 hover:text-red-600"}`}>
               {item.name}
             </Link>
           ))}
         </div>
 
-        <Link href="/sign-in">
+        <Link href="/sign-in" className="hidden md:block">
           <Button>Login Admin</Button>
         </Link>
 
@@ -60,12 +68,16 @@ const Navbar = () => {
 
       {/* Mobile Menu Dropdown */}
       {isOpen && (
-        <div className="md:hidden mt-2 space-y-2 px-4">
+        <div ref={menuRef} className="md:hidden mt-2 space-y-2 px-4 bg-white shadow-md rounded-md">
           {navigation.map((item) => (
             <Link key={item.name} href={item.href} className={`block text-sm font-medium ${pathname === item.href ? "text-red-600" : "text-gray-700 hover:text-red-600"}`}>
               {item.name}
             </Link>
           ))}
+
+          <Link href="/sign-in" className="block md:hidden">
+            <Button className="w-full">Login Admin</Button>
+          </Link>
 
           {/* Menu After Sign In */}
           <Link href="/dashboard">
@@ -78,6 +90,4 @@ const Navbar = () => {
       )}
     </nav>
   );
-};
-
-export default Navbar;
+}
