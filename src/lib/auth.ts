@@ -1,60 +1,36 @@
-import { auth, currentUser } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import { prisma } from "./db";
 
 export async function getCurrentUser() {
-  const { userId } = auth();
+  const { userId } = await auth();
 
   if (!userId) {
     return null;
   }
 
-  const user = await currentUser();
-
-  if (!user) {
-    return null;
-  }
-
-  // Check if user exists in our database
-  let dbUser = await prisma.user.findUnique({
-    where: { email: user.emailAddresses[0].emailAddress },
+  const user = await prisma.user.findUnique({
+    where: { clerkId: userId },
   });
 
-  // If user doesn't exist, create them
-  if (!dbUser) {
-    dbUser = await prisma.user.create({
-      data: {
-        id: userId,
-        email: user.emailAddresses[0].emailAddress,
-        name: `${user.firstName} ${user.lastName}`.trim() || user.emailAddresses[0].emailAddress,
-        role: "USER", // Default role
-      },
-    });
-  }
-
-  return {
-    ...dbUser,
-    imageUrl: user.imageUrl,
-    firstName: user.firstName,
-    lastName: user.lastName,
-  };
+  return user;
 }
 
-export async function isAdmin() {
+export async function requireAuth() {
   const user = await getCurrentUser();
-  return user?.role === "ADMIN";
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  return user;
 }
 
 export async function requireAdmin() {
-  const isUserAdmin = await isAdmin();
+  const user = await requireAuth();
 
-  if (!isUserAdmin) {
-    throw new Error("Unauthorized: Admin access required");
+  if (user.role !== "admin") {
+    throw new Error("Forbidden: Admin access required");
   }
 
-  return true;
-}
-
-export async function getUserRole() {
-  const user = await getCurrentUser();
-  return user?.role || "USER";
+  return user;
 }

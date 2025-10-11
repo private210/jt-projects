@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getGreeting } from "@/lib/utils"; // import greeting
+import {tabs} from "@/data/tabs";
 
 interface HeaderAdminProps {
   username: string;
@@ -12,17 +13,6 @@ interface HeaderAdminProps {
 
 export default function HeaderAdmin({ username, lastLogin }: HeaderAdminProps) {
   const greeting = getGreeting();
-
-  const tabs = [
-    { value: "overview", label: "📊 Overview", link: "/dashboard" },
-    { value: "produk", label: "📦 Produk", link: "/manage-products" },
-    { value: "banner", label: "🖼️ Banner", link: "/manage-banners" },
-    { value: "banner", label: "🖼️ Banner", link: "/manage-users" },
-    { value: "banner", label: "🖼️ Banner", link: "/manage-home" },
-    { value: "banner", label: "🖼️ Banner", link: "/manage-about" },
-    { value: "banner", label: "🖼️ Banner", link: "/manage-contact" },
-    { value: "banner", label: "🖼️ Banner", link: "/manage-website" },
-  ];
 
   return (
     <header className="rounded-xl border shadow-sm">

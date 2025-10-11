@@ -5,11 +5,13 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { useUser, SignInButton, SignOutButton } from "@clerk/nextjs";
 
 export default function Navbar() {
-       const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement>(null);
+  const { isSignedIn } = useUser(); // cek user login atau belum
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -35,6 +37,7 @@ export default function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
   return (
     <nav className="bg-white shadow-md fixed w-full z-50 p-6">
       <div className="container flex items-center justify-between text-center md:justify-between md:mx-auto lg:px-16">
@@ -56,9 +59,25 @@ export default function Navbar() {
           ))}
         </div>
 
-        <Link href="/sign-in" className="hidden md:block">
-          <Button>Login Admin</Button>
-        </Link>
+        {/* Auth Button Desktop */}
+        <div className="hidden md:flex">
+          {isSignedIn ? (
+            <>
+              <Link href="/dashboard" className="mr-2">
+                <Button>Dashboard</Button>
+              </Link>
+              <SignOutButton>
+                <Button variant="outline">Logout</Button>
+              </SignOutButton>
+              {/* Atau pakai UserButton biar ada menu profile */}
+              {/* <UserButton afterSignOutUrl="/" /> */}
+            </>
+          ) : (
+            <SignInButton mode="modal">
+              <Button>Login Admin</Button>
+            </SignInButton>
+          )}
+        </div>
 
         {/* Mobile Button */}
         <button onClick={toggleMenu} className="md:hidden text-gray-700 focus:outline-none">
@@ -75,17 +94,23 @@ export default function Navbar() {
             </Link>
           ))}
 
-          <Link href="/sign-in" className="block md:hidden">
-            <Button className="w-full">Login Admin</Button>
-          </Link>
-
-          {/* Menu After Sign In */}
-          <Link href="/dashboard">
-            <Button className="w-full">Dashboard</Button>
-          </Link>
-          <Link href="/sign-in">
-            <Button className="w-full">Logout</Button>
-          </Link>
+          {/* Auth Button Mobile */}
+          {isSignedIn ? (
+            <>
+              <Link href="/dashboard">
+                <Button className="w-full">Dashboard</Button>
+              </Link>
+              <SignOutButton>
+                <Button className="w-full" variant="outline">
+                  Logout
+                </Button>
+              </SignOutButton>
+            </>
+          ) : (
+            <SignInButton mode="modal">
+              <Button className="w-full">Login Admin</Button>
+            </SignInButton>
+          )}
         </div>
       )}
     </nav>
