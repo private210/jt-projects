@@ -32,15 +32,26 @@ export function formatCurrency(value: number) {
   }).format(value);
 }
 
-import { Product } from "@/data/product";
+// Ganti import dari data statis ke Prisma
+import { Product, ProductOption } from "@prisma/client";
 
-export function getTotalStock(product: Product): number {
+export function getTotalStock(product: Product & { options?: ProductOption[] }): number {
+  if (!product.options || product.options.length === 0) return 0;
   return product.options.reduce((sum, option) => sum + option.stock, 0);
 }
+
 
 export const calculateDiscount = (oldPrice?: number, price?: number): number => {
   if (!oldPrice || !price) return 0;
   return Math.round((1 - price / oldPrice) * 100);
 };
+
+export function formatDate(date: Date | string) {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(new Date(date));
+}
 
 

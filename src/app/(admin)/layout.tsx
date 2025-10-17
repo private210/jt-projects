@@ -20,5 +20,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Footer */}
       <Footer />
     </div>
+
   );
 }
