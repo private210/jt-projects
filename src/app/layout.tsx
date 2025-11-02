@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Roboto_Slab, Roboto_Mono  } from "next/font/google";
 import "./globals.css";
-import { ClerkProvider } from "@clerk/nextjs";
+// import { ClerkProvider } from "@clerk/nextjs";
 
 const fontserif = Roboto_Slab({
   variable: "--font-roboto-slab",
@@ -24,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    // <ClerkProvider>
     <html lang="id">
       <body
         className={`${fontserif.variable} ${fontMono.variable} antialiased`}
@@ -34,6 +34,6 @@ export default function RootLayout({
         {/* <Footer /> */}
       </body>
     </html>
-    </ClerkProvider>
+    // </ClerkProvider>
   );
 }

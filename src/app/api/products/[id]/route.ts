@@ -1,4 +1,3 @@
-// app/api/products/[id]/route.ts
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
@@ -37,11 +36,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   try {
     const { nama, deskripsi, isFavorite, categoryIds, images, options } = await req.json();
 
-    // Hapus relasi lama (cascade delete akan menghapus specs dan images di options)
     await prisma.productOption.deleteMany({ where: { productId: params.id } });
     await prisma.productImage.deleteMany({ where: { productId: params.id } });
 
-    // Update product dengan relasi baru
     const product = await prisma.product.update({
       where: { id: params.id },
       data: {
@@ -105,9 +102,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
   try {
-    // Cascade delete akan otomatis menghapus relasi karena onDelete: Cascade di schema
     await prisma.product.delete({ where: { id: params.id } });
-
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting product:", error);

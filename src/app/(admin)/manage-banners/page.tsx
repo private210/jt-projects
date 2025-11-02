@@ -145,7 +145,6 @@ export default function ManageBanner() {
           <h1 className="text-3xl font-bold">Kelola Banner</h1>
           <p className="text-gray-600">Atur banner promosi dan informasi website</p>
         </div>
-
         <BannerDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} editingBanner={editingBanner} formData={formData} setFormData={setFormData} onSubmit={handleSubmit} submitting={submitting} />
       </div>
 

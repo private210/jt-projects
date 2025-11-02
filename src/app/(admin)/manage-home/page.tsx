@@ -8,24 +8,38 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { Home } from "@prisma/client";
+import { ImageUploadInput } from "@/components/ui/image-upload-input";
+
+function useToast() {
+  const toast = ({ title, description, variant }: { title?: string; description?: string; variant?: string }) => {
+    if (typeof window !== "undefined") {
+      if (variant === "destructive") {
+        alert(`${title ? title + " - " : ""}${description || ""}`);
+      } else {
+        console.log("Toast:", { title, description, variant });
+      }
+    }
+  };
+  return { toast };
+}
 
 interface HomeFormData {
   title: string;
-  description: string;
-  imageUrl: string;
-  imageType: string;
+  deskripsi: string;
+  image: string;
 }
 
 export default function ManageHomePage() {
   const [home, setHome] = useState<Home | null>(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const { toast } = useToast();
 
   const form = useForm<HomeFormData>({
     defaultValues: {
       title: "",
-      description: "",
-      imageUrl: "",
-      imageType: "upload",
+      deskripsi: "",
+      image: "",
     },
   });
 
@@ -36,45 +50,73 @@ export default function ManageHomePage() {
   const fetchHome = async () => {
     try {
       const response = await fetch("/api/home");
+      if (!response.ok) throw new Error("Failed to fetch");
+
       const data = await response.json();
       if (data) {
         setHome(data);
-        form.reset(data);
+        form.reset({
+          title: data.title || "",
+          deskripsi: data.deskripsi || "",
+          image: data.image || "",
+        });
       }
     } catch (error) {
       console.error("Failed to fetch home data:", error);
+      toast({
+        title: "Error",
+        description: "Gagal memuat data home",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const onSubmit = async (data: HomeFormData) => {
+    setSubmitting(true);
     try {
       const response = await fetch("/api/home", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (response.ok) {
-        const updated = await response.json();
-        setHome(updated);
-        alert("Home data updated successfully!");
-      }
+
+      if (!response.ok) throw new Error("Failed to update");
+
+      const updated = await response.json();
+      setHome(updated);
+
+      toast({
+        title: "Berhasil",
+        description: "Data home berhasil diperbarui!",
+      });
     } catch (error) {
       console.error("Failed to update home data:", error);
+      toast({
+        title: "Error",
+        description: "Gagal memperbarui data home",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Manage Home</h1>
+    <div className="space-y-6 p-6">
+      <h1 className="text-3xl font-bold">Kelola Halaman Home</h1>
       <Card>
         <CardHeader>
-          <CardTitle>Home Content</CardTitle>
+          <CardTitle>Konten Hero Home</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -84,9 +126,9 @@ export default function ManageHomePage() {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Title</FormLabel>
+                    <FormLabel>Judul</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} placeholder="Solusi Teknologi Terlengkap" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -94,31 +136,21 @@ export default function ManageHomePage() {
               />
               <FormField
                 control={form.control}
-                name="description"
+                name="deskripsi"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>Deskripsi</FormLabel>
                     <FormControl>
-                      <Textarea {...field} rows={5} />
+                      <Textarea {...field} rows={5} placeholder="Deskripsi singkat tentang perusahaan..." />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="imageUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Image URL</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit">Update Home</Button>
+              <ImageUploadInput label="Gambar Banner" value={form.getValues("image")} onChange={(url) => form.setValue("image", url)} placeholder="https://example.com/banner.jpg" />
+              <Button type="submit" disabled={submitting}>
+                {submitting ? "Menyimpan..." : "Perbarui Data"}
+              </Button>
             </form>
           </Form>
         </CardContent>

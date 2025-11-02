@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { ImageUploadInput } from "@/components/ui/image-upload-input";
 
 interface BrandDialogProps {
   open: boolean;
@@ -29,10 +30,9 @@ export function BrandDialog({ open, onOpenChange, formData, setFormData, onSubmi
             <Label className="mb-4">Nama Brand</Label>
             <Input value={formData.nama} onChange={(e) => setFormData({ ...formData, nama: e.target.value })} placeholder="Masukkan nama brand" required />
           </div>
-          <div>
-            <Label className="mb-4">URL Gambar (opsional)</Label>
-            <Input value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} placeholder="https://..." />
-          </div>
+          {/* Menggunakan ImageUploadInput */}
+          <ImageUploadInput label="Gambar Banner" value={formData.image} onChange={(url) => setFormData((prev) => ({ ...prev, image: url }))} placeholder="https://example.com/banner.jpg" />
+
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

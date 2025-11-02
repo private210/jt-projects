@@ -1,56 +1,39 @@
-import BannersSections from "@/components/home/banners-sections";
-import ProductGrid from "@/components/products/product-grid";
+"use client";
+
+import { useState } from "react";
 import FilterBar from "@/components/products/filter-bar";
+import ProductGrid from "@/components/products/product-grid";
 import CTASection from "@/components/products/cta-sections";
-import { products } from "@/data/product"; //
+import BannersSections from "@/components/products/banner-sections";
 
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { Filter } from "lucide-react";
+export default function ProductsPage() {
+  const [filters, setFilters] = useState({
+    search: "",
+    categories: [] as string[],
+    brands: [] as string[],
+    priceRange: [0, 50000000] as [number, number],
+    inStock: false,
+  });
 
-export default function ProductPage() {
   return (
-    <div className="bg-gray-50 md:pt-12">
+    <div className="container mx-auto py-10 px-4 md:px-20">
+      {/* Banners */}
       <BannersSections />
-      <h2 className="text-center font-bold text-xl mb-6">✨ Semua Product ✨</h2>
-      <div className="container mx-auto px-12 py-10 grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-        {/* === DESKTOP FILTER === */}
-        <div className="hidden lg:block lg:col-span-1 z-10  sticky top-30 self-start">
-          <FilterBar />
+      {/* Product Catalog */}
+      <h1 className="text-3xl font-bold mb-8">Katalog Produk</h1>
+
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Filter Sidebar */}
+        <div className="w-full lg:w-64 flex-shrink-0">
+          <FilterBar onFilterChange={setFilters} />
         </div>
 
-        {/* === MOBILE FILTER (Sheet) === */}
-        <div className="block lg:hidden mb-4">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-2">
-                <Filter size={16} />
-                Filter
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-72 p-0">
-              <SheetHeader className="p-4 border-b">
-                <SheetTitle>Filter Produk</SheetTitle>
-              </SheetHeader>
-              <div className="p-4">
-                <FilterBar />
-              </div>
-            </SheetContent>
-          </Sheet>
+        {/* Product Grid */}
+        <div className="flex-1">
+          <ProductGrid filters={filters} />
         </div>
-
-        {/* Konten utama */}  
-        <main className="lg:col-span-3">
-          <ProductGrid products={products} />
-        </main>
       </div>
-      <CTASection />
+          <CTASection />
     </div>
   );
 }

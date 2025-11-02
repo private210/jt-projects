@@ -3,8 +3,34 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+
+interface ContactData {
+  nomor_wa?: string | null;
+  whatsapp?: string | null;
+}
 
 export default function CTASections() {
+   const [contact, setContact] = useState<ContactData | null>(null); 
+
+   // 🔹 Fetch WhatsApp contact
+    useEffect(() => {
+      (async () => {
+        try {
+          const res = await fetch("/api/contacts", { cache: "no-store" });
+          if (!res.ok) throw new Error("Gagal memuat kontak");
+          const data = await res.json();
+          setContact(data);
+        } catch (error) {
+          console.error("Failed to fetch contact data:", error);
+        }
+      })();
+    }, []);
+  
+    // 🔹 Buat link WhatsApp otomatis dari DB
+    const whatsappNumber = contact?.nomor_wa || "6281234567890";
+    const whatsappLink = contact?.whatsapp || `https://wa.me/${whatsappNumber}?text=${encodeURIComponent("Halo! Saya tertarik ingin konsultasi dengan Joyo Tech ID")}`;
+  
   return (
     <section className="py-20 bg-gray-100">
       <motion.div
@@ -21,10 +47,12 @@ export default function CTASections() {
             </p>
             <div className="flex flex-wrap justify-center gap-4 ml-6">
               <Button size="lg" className="bg-joyo-red hover:bg-joyo-red/60 hover:text-white">
-               Jelajahi Produk Kami
+                <Link href="/products">Jelajahi Produk Kami</Link>
               </Button>
               <Button size="lg" variant="outline" className="text-joyo-black/40 border-joyo-white">
-                Konsultasikan Dengan Kami
+                <Link href={whatsappLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                  Konsultasikan Dengan Kami
+                </Link>
               </Button>
             </div>
           </div>

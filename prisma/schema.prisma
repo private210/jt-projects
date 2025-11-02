@@ -8,17 +8,78 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// User model integrated with Clerk
 model User {
-  id        String   @id @default(cuid())
-  clerkId   String?  @unique
-  email     String   @unique
-  username  String?
-  role      String   @default("user")
-  password  String?  // optional, only if you want NextAuth credentials
+  id            String    @id @default(cuid())
+  name          String?
+  username      String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // Optional untuk Google users
+  role          String    @default("USER")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  DEVELOPER
+  ADMIN
+  EDITOR
+}
+
+model FAQ {
+  id        String  @id @default(cuid())
+  pertanyaan String
+  jawaban    String  @db.Text
+  urutan     Int     @default(0)
+  isActive   Boolean @default(true)
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("faqs")
 }
+
+model ActivityLog {
+  id        Int      @id @default(autoincrement())
+  action    String
+  entity    String?
+  entityId  Int?
+  user      String?
+  createdAt DateTime @default(now())
+}
+
+
 
 model Home {
   id        String @id @default(cuid())
@@ -36,6 +97,7 @@ model About {
   id           String         @id @default(cuid())
   title        String
   deskripsi    String
+  image        String?
   visi         String
   misi         String
   layanan      String
@@ -72,6 +134,7 @@ model Contact {
   jam_operasional String
   instagram       String?
   tiktok          String?
+  whatsapp        String?
   facebook        String?
   youtube         String?
   aboutId         String?
@@ -93,6 +156,16 @@ model Marketplace {
   updatedAt DateTime @updatedAt
 
   @@map("marketplaces")
+}
+model Message {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+  
+  @@map("messages")
 }
 
 model Banner {
@@ -185,6 +258,7 @@ model SettingSite {
   id            String @id @default(cuid())
   logo          String?
   nama_company  String
+  tagline       String
   metadataTitle String
   favicon       String?
   metakeyword   String?

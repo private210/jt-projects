@@ -5,14 +5,27 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { MultiImageUpload } from "@/components/ui/multi-image-upload";
+import { ImageUploadInput } from "@/components/ui/image-upload-input";
 import { Category } from "@prisma/client";
+import { Trash2, Plus } from "lucide-react";
 
-export function ProductsDialog({ open, onOpenChange, editingProduct, formData, setFormData, onSubmit, categories }: any) {
-  // ========== HANDLERS ==========
-  const addImage = () => setFormData({ ...formData, images: [...formData.images, ""] });
-  const removeImage = (i: number) => setFormData({ ...formData, images: formData.images.filter((_, x) => x !== i) });
+interface ProductsDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  editingProduct: unknown;
+  formData: any;
+  setFormData: (data: any) => void;
+  onSubmit: (e: React.FormEvent) => void;
+  categories: Category[];
+  submitting?: boolean;
+}
 
-  const addOption = () =>
+export function ProductsDialog({ open, onOpenChange, editingProduct, formData, setFormData, onSubmit, categories, submitting = false }: ProductsDialogProps) {
+  // ========= HANDLERS ==========
+  const addOption = () => {
     setFormData({
       ...formData,
       options: [
@@ -28,18 +41,18 @@ export function ProductsDialog({ open, onOpenChange, editingProduct, formData, s
         },
       ],
     });
-
-  const removeOption = (i: number) => setFormData({ ...formData, options: formData.options.filter((_: any, x: number) => x !== i) });
-
-  const addOptionImage = (optIndex: number) => {
-    const opts = [...formData.options];
-    opts[optIndex].images.push("");
-    setFormData({ ...formData, options: opts });
   };
 
-  const removeOptionImage = (optIndex: number, imgIndex: number) => {
+  const removeOption = (index: number) => {
+    setFormData({
+      ...formData,
+      options: formData.options.filter((_: any, i: number) => i !== index),
+    });
+  };
+
+  const updateOption = (index: number, field: string, value: any) => {
     const opts = [...formData.options];
-    opts[optIndex].images = opts[optIndex].images.filter((_: any, i: number) => i !== imgIndex);
+    opts[index][field] = value;
     setFormData({ ...formData, options: opts });
   };
 
@@ -55,215 +68,204 @@ export function ProductsDialog({ open, onOpenChange, editingProduct, formData, s
     setFormData({ ...formData, options: opts });
   };
 
-  // ========== RENDER ==========
+  const updateSpec = (optIndex: number, specIndex: number, field: string, value: string) => {
+    const opts = [...formData.options];
+    opts[optIndex].specs[specIndex][field] = value;
+    setFormData({ ...formData, options: opts });
+  };
+
+  // ========= RENDER ==========
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{editingProduct ? "Edit Produk" : "Tambah Produk"}</DialogTitle>
+      <DialogContent className="max-w-[90vw] !w-full md:max-w-6xl max-h-[90vh] overflow-y-auto rounded-xl">
+        <DialogHeader className="pb-4 border-b">
+          <DialogTitle className="text-2xl font-semibold tracking-tight">{editingProduct ? "Edit Produk" : "Tambah Produk Baru"}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={onSubmit} className="space-y-6">
-          {/* Nama & Deskripsi */}
-          <div>
-            <Label>Nama Produk</Label>
-            <Input value={formData.nama} onChange={(e) => setFormData({ ...formData, nama: e.target.value })} required />
-          </div>
-
-          <div>
-            <Label>Deskripsi</Label>
-            <Textarea value={formData.deskripsi} onChange={(e) => setFormData({ ...formData, deskripsi: e.target.value })} required />
-          </div>
-
-          {/* Gambar Produk */}
-          <div>
-            <Label>Gambar Produk</Label>
-            {formData.images.map((url: string, i: number) => (
-              <div key={i} className="flex gap-2 mb-2">
-                <Input
-                  placeholder="URL gambar"
-                  value={url}
-                  onChange={(e) => {
-                    const imgs = [...formData.images];
-                    imgs[i] = e.target.value;
-                    setFormData({ ...formData, images: imgs });
-                  }}
-                />
-                <Button type="button" variant="ghost" onClick={() => removeImage(i)}>
-                  Hapus
-                </Button>
+        <form onSubmit={onSubmit} className="space-y-8 py-4">
+          {/* === INFORMASI DASAR === */}
+          <Card className="border rounded-xl shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-semibold text-gray-800">Informasi Dasar</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="nama">Nama Produk *</Label>
+                <Input id="nama" value={formData.nama} onChange={(e) => setFormData({ ...formData, nama: e.target.value })} placeholder="Contoh: iPhone 15 Pro Max" required />
               </div>
-            ))}
-            <Button type="button" size="sm" onClick={addImage}>
-              + Tambah Gambar
-            </Button>
-          </div>
 
-          {/* Kategori */}
-          <div>
-            <Label>Kategori</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {categories.map((cat: Category) => (
-                <label key={cat.id} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.categoryIds.includes(cat.id)}
-                    onChange={(e) => {
-                      const checked = e.target.checked;
-                      setFormData((prev: any) => ({
-                        ...prev,
-                        categoryIds: checked ? [...prev.categoryIds, cat.id] : prev.categoryIds.filter((id: string) => id !== cat.id),
-                      }));
-                    }}
-                  />
-                  <span>{cat.nama}</span>
-                </label>
-              ))}
-            </div>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="deskripsi">Deskripsi Produk *</Label>
+                <Textarea id="deskripsi" value={formData.deskripsi} onChange={(e) => setFormData({ ...formData, deskripsi: e.target.value })} placeholder="Jelaskan detail produk..." rows={4} required />
+              </div>
 
-          {/* Favorit */}
-          <div className="flex items-center space-x-2">
-            <Switch checked={formData.isFavorite} onCheckedChange={(checked) => setFormData({ ...formData, isFavorite: checked })} />
-            <Label>Favorit</Label>
-          </div>
+              <div className="flex items-center space-x-3">
+                <Switch id="isFavorite" checked={formData.isFavorite} onCheckedChange={(checked) => setFormData({ ...formData, isFavorite: checked })} />
+                <Label htmlFor="isFavorite" className="cursor-pointer">
+                  Tandai sebagai Produk Favorit
+                </Label>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* OPTIONS */}
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <Label>Opsi Produk (Varian)</Label>
-              <Button type="button" size="sm" onClick={addOption}>
-                + Tambah Opsi
+          {/* === KATEGORI === */}
+          <Card className="border rounded-xl shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-semibold text-gray-800">Kategori Produk</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {categories.map((cat: Category) => (
+                  <label key={cat.id} className="flex items-center space-x-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={formData.categoryIds.includes(cat.id)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setFormData((prev: any) => ({
+                          ...prev,
+                          categoryIds: checked ? [...prev.categoryIds, cat.id] : prev.categoryIds.filter((id: string) => id !== cat.id),
+                        }));
+                      }}
+                      className="w-4 h-4 accent-blue-600"
+                    />
+                    <span className="text-sm font-medium text-gray-700">{cat.nama}</span>
+                  </label>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* === GAMBAR PRODUK === */}
+          <Card className="border rounded-xl shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-semibold text-gray-800">Gambar Produk Utama</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MultiImageUpload images={formData.images} onChange={(images) => setFormData({ ...formData, images })} label="Upload atau masukkan URL gambar produk" />
+            </CardContent>
+          </Card>
+
+          {/* === VARIAN PRODUK === */}
+          <Card className="border rounded-xl shadow-sm">
+            <CardHeader className="flex justify-between items-center pb-2">
+              <CardTitle className="text-lg font-semibold text-gray-800">Varian Produk</CardTitle>
+              <Button type="button" size="sm" onClick={addOption} variant="outline">
+                <Plus className="w-4 h-4 mr-2" />
+                Tambah Varian
               </Button>
-            </div>
+            </CardHeader>
 
-            {formData.options.map((opt: any, optIndex: number) => (
-              <div key={optIndex} className="p-3 border rounded-lg mb-3 bg-gray-50 space-y-3">
-                <div className="flex justify-between items-center">
-                  <strong>Opsi #{optIndex + 1}</strong>
-                  <Button type="button" variant="outline" size="sm" onClick={() => removeOption(optIndex)}>
-                    Hapus
-                  </Button>
+            <CardContent className="space-y-6">
+              {formData.options.length === 0 ? (
+                <div className="text-center py-10 text-gray-500 bg-gray-50 rounded-lg border">
+                  <p className="text-base font-medium">Belum ada varian produk.</p>
+                  <p className="text-sm mt-1">Klik tombol “Tambah Varian” untuk menambahkan.</p>
                 </div>
+              ) : (
+                formData.options.map((opt: any, optIndex: number) => (
+                  <Card key={optIndex} className="border rounded-lg shadow-sm bg-gray-50/40">
+                    <CardHeader className="pb-3 border-b">
+                      <div className="flex justify-between items-center">
+                        <CardTitle className="text-base font-semibold text-gray-700">
+                          Varian #{optIndex + 1} {opt.warna && opt.variant ? ` - ${opt.warna} ${opt.variant}` : ""}
+                        </CardTitle>
+                        <Button type="button" variant="destructive" size="sm" onClick={() => removeOption(optIndex)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
 
-                <Input
-                  placeholder="Warna"
-                  value={opt.warna}
-                  onChange={(e) => {
-                    const opts = [...formData.options];
-                    opts[optIndex].warna = e.target.value;
-                    setFormData({ ...formData, options: opts });
-                  }}
-                />
-                <Input
-                  placeholder="Varian"
-                  value={opt.variant}
-                  onChange={(e) => {
-                    const opts = [...formData.options];
-                    opts[optIndex].variant = e.target.value;
-                    setFormData({ ...formData, options: opts });
-                  }}
-                />
-                <div className="grid grid-cols-3 gap-2">
-                  <Input
-                    type="number"
-                    placeholder="Harga Asli"
-                    value={opt.hargaAsli}
-                    onChange={(e) => {
-                      const opts = [...formData.options];
-                      opts[optIndex].hargaAsli = e.target.value;
-                      setFormData({ ...formData, options: opts });
-                    }}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Harga Jual"
-                    value={opt.hargaJual}
-                    onChange={(e) => {
-                      const opts = [...formData.options];
-                      opts[optIndex].hargaJual = e.target.value;
-                      setFormData({ ...formData, options: opts });
-                    }}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Stok"
-                    value={opt.stock}
-                    onChange={(e) => {
-                      const opts = [...formData.options];
-                      opts[optIndex].stock = e.target.value;
-                      setFormData({ ...formData, options: opts });
-                    }}
-                  />
-                </div>
+                    <CardContent className="pt-4 space-y-6">
+                      {/* Warna & Varian */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Warna</Label>
+                          <Input placeholder="Contoh: Hitam" value={opt.warna} onChange={(e) => updateOption(optIndex, "warna", e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Varian</Label>
+                          <Input placeholder="Contoh: 256GB" value={opt.variant} onChange={(e) => updateOption(optIndex, "variant", e.target.value)} />
+                        </div>
+                      </div>
 
-                {/* Gambar per varian */}
-                <div>
-                  <Label>Gambar Varian</Label>
-                  {opt.images.map((url: string, imgIndex: number) => (
-                    <div key={imgIndex} className="flex gap-2 mb-2">
-                      <Input
-                        placeholder="URL gambar varian"
-                        value={url}
-                        onChange={(e) => {
-                          const opts = [...formData.options];
-                          opts[optIndex].images[imgIndex] = e.target.value;
-                          setFormData({ ...formData, options: opts });
-                        }}
-                      />
-                      <Button type="button" variant="ghost" onClick={() => removeOptionImage(optIndex, imgIndex)}>
-                        Hapus
-                      </Button>
-                    </div>
-                  ))}
-                  <Button type="button" size="sm" onClick={() => addOptionImage(optIndex)}>
-                    + Tambah Gambar Varian
-                  </Button>
-                </div>
+                      {/* Harga & Stok */}
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label>Harga Asli (Rp)</Label>
+                          <Input type="number" placeholder="0" value={opt.hargaAsli} onChange={(e) => updateOption(optIndex, "hargaAsli", e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Harga Jual (Rp)</Label>
+                          <Input type="number" placeholder="0" value={opt.hargaJual} onChange={(e) => updateOption(optIndex, "hargaJual", e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Stok</Label>
+                          <Input type="number" placeholder="0" value={opt.stock} onChange={(e) => updateOption(optIndex, "stock", e.target.value)} />
+                        </div>
+                      </div>
 
-                {/* Spesifikasi */}
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <Label>Spesifikasi</Label>
-                    <Button type="button" size="sm" onClick={() => addSpec(optIndex)}>
-                      + Tambah Spec
-                    </Button>
-                  </div>
-                  {opt.specs.map((spec: any, specIndex: number) => (
-                    <div key={specIndex} className="border rounded-md p-2 bg-white mb-2 space-y-2">
-                      <Textarea
-                        placeholder="Deskripsi Spesifikasi"
-                        value={spec.deskripsi_spec}
-                        onChange={(e) => {
-                          const opts = [...formData.options];
-                          opts[optIndex].specs[specIndex].deskripsi_spec = e.target.value;
-                          setFormData({ ...formData, options: opts });
-                        }}
-                      />
-                      <Input
-                        placeholder="URL Gambar (opsional)"
-                        value={spec.image}
-                        onChange={(e) => {
-                          const opts = [...formData.options];
-                          opts[optIndex].specs[specIndex].image = e.target.value;
-                          setFormData({ ...formData, options: opts });
-                        }}
-                      />
-                      <Button type="button" variant="ghost" size="sm" onClick={() => removeSpec(optIndex, specIndex)}>
-                        Hapus Spec
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+                      {/* Gambar Varian */}
+                      <Separator />
+                      <div>
+                        <Label className="font-medium">Gambar Varian</Label>
+                        <MultiImageUpload images={opt.images} onChange={(images) => updateOption(optIndex, "images", images)} label="Upload atau masukkan URL gambar varian" />
+                      </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                      {/* Spesifikasi */}
+                      <Separator />
+                      <div>
+                        <div className="flex justify-between items-center mb-4">
+                          <Label className="text-base font-semibold">Spesifikasi Detail</Label>
+                          <Button type="button" size="sm" variant="outline" onClick={() => addSpec(optIndex)}>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Tambah Spesifikasi
+                          </Button>
+                        </div>
+
+                        {opt.specs.length === 0 ? (
+                          <div className="text-center py-4 text-sm text-gray-500 border rounded-lg bg-white">Belum ada spesifikasi</div>
+                        ) : (
+                          <div className="space-y-4">
+                            {opt.specs.map((spec: any, specIndex: number) => (
+                              <Card key={specIndex} className="bg-white border rounded-lg">
+                                <CardContent className="pt-4 space-y-4">
+                                  <div className="flex justify-between items-start">
+                                    <Label className="text-sm font-medium">Spesifikasi #{specIndex + 1}</Label>
+                                    <Button type="button" variant="ghost" size="sm" onClick={() => removeSpec(optIndex, specIndex)}>
+                                      <Trash2 className="w-4 h-4 text-red-500" />
+                                    </Button>
+                                  </div>
+
+                                  <Textarea
+                                    placeholder="Deskripsi spesifikasi (Contoh: Layar: 6.7 inch Super Retina XDR)"
+                                    value={spec.deskripsi_spec}
+                                    onChange={(e) => updateSpec(optIndex, specIndex, "deskripsi_spec", e.target.value)}
+                                    rows={3}
+                                  />
+
+                                  <ImageUploadInput label="Gambar Spesifikasi (Opsional)" value={spec.image || ""} onChange={(url) => updateSpec(optIndex, specIndex, "image", url)} placeholder="Upload atau URL gambar spesifikasi" />
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </CardContent>
+          </Card>
+
+          {/* === FOOTER === */}
+          <DialogFooter className="gap-2 pt-2 border-t">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
               Batal
             </Button>
-            <Button type="submit">{editingProduct ? "Perbarui" : "Simpan"}</Button>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? "Menyimpan..." : editingProduct ? "Perbarui Produk" : "Simpan Produk"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

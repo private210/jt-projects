@@ -1,24 +1,62 @@
-// app/products/[id]/page.tsx
-import { products, Product } from "@/data/product";
-import ProdukDetailClient from "@/components/products/[id]/ProdukDetailClient";
+import ProductGallery from "@/components/products/[id]/ProductGallery";
+import ProductInfo from "@/components/products/[id]/ProductInfo";
+import ProductDescription from "@/components/products/[id]/ProductDescription";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import prisma from "@/lib/prisma";
 
-interface ProductDetailPageProps {
-  params: {
-    id: string;
-  };
+interface ProductPageProps {
+  params: { id: string };
 }
 
-export default function ProductDetailPage({ params }: ProductDetailPageProps) {
-  const productId = parseInt(params.id);
-  const product = products.find((p) => p.id === productId);
+export default async function ProdukDetailPage({ params }: ProductPageProps) {
+  const product = await prisma.product.findUnique({
+    where: { id: params.id },
+    include: {
+      categories: true,
+      images: { orderBy: { urutan: "asc" } },
+      options: {
+        include: {
+          images: { orderBy: { urutan: "asc" } },
+          specs: true,
+        },
+      },
+    },
+  });
 
   if (!product) {
     return (
-      <div className="container mx-auto py-28 px-4 text-center">
-        <h1 className="text-2xl font-bold">Produk tidak ditemukan</h1>
+      <div className="container mx-auto py-20 px-4 md:px-20">
+        <p className="text-center text-red-600">Produk tidak ditemukan</p>
       </div>
     );
   }
 
-  return <ProdukDetailClient product={product} />;
+  return (
+    <section className="container mx-auto py-10 md:py-35 px-4 md:px-20">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/products">Katalog</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage className="text-red-600">{product.nama}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-20 mt-8">
+        <ProductGallery product={product} />
+        <ProductInfo product={product} />
+      </div>
+
+      <div className="mt-10">
+        <ProductDescription product={product} />
+      </div>
+    </section>
+  );
 }

@@ -1,9 +1,12 @@
-"use client";
-
+// app/contact/page.tsx
 import MessageForm from "@/components/contact/MessageForm";
 import ContactInfo from "@/components/contact/ContactInfo";
 import LocationMap from "@/components/contact/LocationMap";
 import SocialMedia from "@/components/contact/SocialMedia";
+
+// ❌ Hapus "use client" di level page
+// Halaman ini akan dirender di server untuk tampilan instan
+export const dynamic = "force-static"; // memastikan pre-render tanpa loading
 
 export default function ContactPage() {
   return (
@@ -17,7 +20,9 @@ export default function ContactPage() {
       {/* Layout 2 kolom */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Kiri: Form */}
-        <MessageForm />
+        <div className="bg-white rounded-xl shadow-md p-6">
+          <MessageForm />
+        </div>
 
         {/* Kanan: Info, Lokasi, Sosmed */}
         <div className="space-y-6">

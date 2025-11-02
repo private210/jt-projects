@@ -1,4 +1,3 @@
-// app/api/products/route.ts
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
@@ -40,7 +39,6 @@ export async function POST(req: Request) {
         categories: {
           connect: (categoryIds || []).map((id: string) => ({ id })),
         },
-        // Simpan gambar produk utama
         ...(images?.length
           ? {
               images: {
@@ -51,7 +49,6 @@ export async function POST(req: Request) {
               },
             }
           : {}),
-        // Simpan options + images + specs
         ...(options?.length
           ? {
               options: {

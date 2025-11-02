@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CategoryDialogProps {
@@ -22,6 +22,8 @@ export function CategoryDialog({ open, onClose, onSave, initialData, brands }: C
     nama: "",
     brandPartnerIds: [] as string[],
   });
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{ nama?: string }>({});
 
   useEffect(() => {
     if (initialData) {
@@ -29,8 +31,15 @@ export function CategoryDialog({ open, onClose, onSave, initialData, brands }: C
         nama: initialData.nama || "",
         brandPartnerIds: initialData.brandPartners?.map((b: any) => b.id) || [],
       });
+    } else {
+      // Reset form when opening for new category
+      setFormData({
+        nama: "",
+        brandPartnerIds: [],
+      });
     }
-  }, [initialData]);
+    setErrors({});
+  }, [initialData, open]);
 
   const toggleSelect = (id: string) => {
     setFormData((prev) => ({
@@ -39,9 +48,29 @@ export function CategoryDialog({ open, onClose, onSave, initialData, brands }: C
     }));
   };
 
+  const validateForm = () => {
+    const newErrors: { nama?: string } = {};
+
+    if (!formData.nama.trim()) {
+      newErrors.nama = "Nama kategori harus diisi";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async () => {
-    await onSave(formData);
-    onClose();
+    if (!validateForm()) return;
+
+    setLoading(true);
+    try {
+      await onSave(formData);
+      onClose();
+    } catch (error) {
+      console.error("Error saving category:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -51,21 +80,34 @@ export function CategoryDialog({ open, onClose, onSave, initialData, brands }: C
           <DialogTitle>{initialData ? "Edit Kategori" : "Tambah Kategori"}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div>
-            <Label className="mb-4">Nama Kategori</Label>
-            <Input value={formData.nama} onChange={(e) => setFormData({ ...formData, nama: e.target.value })} placeholder="Masukkan nama kategori" />
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="nama">
+              Nama Kategori <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="nama"
+              value={formData.nama}
+              onChange={(e) => {
+                setFormData({ ...formData, nama: e.target.value });
+                if (errors.nama) setErrors({ ...errors, nama: undefined });
+              }}
+              placeholder="Masukkan nama kategori"
+              className={errors.nama ? "border-red-500" : ""}
+            />
+            {errors.nama && <p className="text-sm text-red-500">{errors.nama}</p>}
           </div>
 
-          <div>
-            <Label className="mb-4">Pilih Brand Partner</Label>
+          <div className="space-y-2">
+            <Label>Brand Partner (Opsional)</Label>
+            <div className="text-xs text-gray-500 mb-2">Pilih satu atau lebih brand partner</div>
             <Command className="border rounded-md">
               <CommandInput placeholder="Cari brand partner..." />
-              <CommandList>
+              <CommandList className="max-h-[200px]">
                 <CommandEmpty>Tidak ada brand partner.</CommandEmpty>
                 <CommandGroup>
                   {brands.map((b) => (
-                    <CommandItem key={b.id} onSelect={() => toggleSelect(b.id)}>
+                    <CommandItem key={b.id} onSelect={() => toggleSelect(b.id)} className="cursor-pointer">
                       <div className={cn("mr-2 h-4 w-4 border border-primary rounded-sm flex items-center justify-center", formData.brandPartnerIds.includes(b.id) ? "bg-primary text-primary-foreground" : "bg-background")}>
                         {formData.brandPartnerIds.includes(b.id) && <Check className="h-3 w-3" />}
                       </div>
@@ -75,12 +117,19 @@ export function CategoryDialog({ open, onClose, onSave, initialData, brands }: C
                 </CommandGroup>
               </CommandList>
             </Command>
+            {formData.brandPartnerIds.length > 0 && <p className="text-xs text-gray-600 mt-1">{formData.brandPartnerIds.length} brand partner dipilih</p>}
           </div>
         </div>
 
-        <div className="flex justify-end mt-6">
-          <Button onClick={handleSubmit}>Simpan</Button>
-        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={loading}>
+            Batal
+          </Button>
+          <Button onClick={handleSubmit} disabled={loading}>
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {loading ? "Menyimpan..." : "Simpan"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
