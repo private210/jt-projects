@@ -90,7 +90,7 @@ export default function ManageBrands() {
       </div>
 
       <BrandAlerts error={error} success={success} />
-      <BrandStats brands={brands} />
+      <BrandStats brands={brands.map((b) => ({ ...b, categories: [] }))} />
       <BrandTable brands={brands} onEdit={handleEdit} onDelete={handleDelete} />
 
       <BrandDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} formData={formData} setFormData={setFormData} onSubmit={handleSubmit} isEditing={!!editingBrand} submitting={submitting} />

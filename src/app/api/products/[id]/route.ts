@@ -1,20 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+// ✅ GET /api/products/[id]
+export async function GET(_: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
+
   try {
     const product = await prisma.product.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         categories: true,
-        images: {
-          orderBy: { urutan: "asc" },
-        },
+        images: { orderBy: { urutan: "asc" } },
         options: {
           include: {
-            images: {
-              orderBy: { urutan: "asc" },
-            },
+            images: { orderBy: { urutan: "asc" } },
             specs: true,
           },
         },
@@ -27,27 +26,31 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 
     return NextResponse.json(product);
   } catch (error) {
-    console.error("Error fetching product:", error);
+    console.error("❌ Error GET /products/[id]:", error);
     return NextResponse.json({ error: "Gagal memuat produk" }, { status: 500 });
   }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  try {
-    const { nama, deskripsi, isFavorite, categoryIds, images, options } = await req.json();
+// ✅ PUT /api/products/[id]
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
 
-    await prisma.productOption.deleteMany({ where: { productId: params.id } });
-    await prisma.productImage.deleteMany({ where: { productId: params.id } });
+  try {
+    const { nama, deskripsi, isFavorite, categoryIds, images, options } = await request.json();
+
+    // Hapus relasi lama sebelum update ulang
+    await prisma.productOption.deleteMany({ where: { productId: id } });
+    await prisma.productImage.deleteMany({ where: { productId: id } });
 
     const product = await prisma.product.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         nama,
         deskripsi,
         isFavorite: Boolean(isFavorite),
         categories: {
           set: [],
-          connect: (categoryIds || []).map((id: string) => ({ id })),
+          connect: (categoryIds || []).map((cid: string) => ({ id: cid })),
         },
         images: {
           create: (images || []).map((url: string, i: number) => ({
@@ -79,14 +82,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       },
       include: {
         categories: true,
-        images: {
-          orderBy: { urutan: "asc" },
-        },
+        images: { orderBy: { urutan: "asc" } },
         options: {
           include: {
-            images: {
-              orderBy: { urutan: "asc" },
-            },
+            images: { orderBy: { urutan: "asc" } },
             specs: true,
           },
         },
@@ -95,17 +94,20 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
     return NextResponse.json(product);
   } catch (error) {
-    console.error("Error updating product:", error);
+    console.error("❌ Error PUT /products/[id]:", error);
     return NextResponse.json({ error: "Gagal memperbarui produk" }, { status: 500 });
   }
 }
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+// ✅ DELETE /api/products/[id]
+export async function DELETE(_: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
+
   try {
-    await prisma.product.delete({ where: { id: params.id } });
+    await prisma.product.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error deleting product:", error);
+    console.error("❌ Error DELETE /products/[id]:", error);
     return NextResponse.json({ error: "Gagal menghapus produk" }, { status: 500 });
   }
 }

@@ -1,11 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 // ✅ GET /api/banners/[id]
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
+
   try {
     const banner = await prisma.banner.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!banner) {
@@ -20,13 +22,15 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 }
 
 // ✅ PUT /api/banners/[id]
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
+
   try {
-    const body = await req.json();
+    const body = await request.json();
     const { title, deskripsi, image, urutan, isActive } = body;
 
     const updatedBanner = await prisma.banner.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         title,
         deskripsi,
@@ -44,11 +48,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 }
 
 // ✅ DELETE /api/banners/[id]
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
+
   try {
     await prisma.banner.delete({
-      where: { id: params.id },
+      where: { id },
     });
+
     return NextResponse.json({ message: "Banner berhasil dihapus" });
   } catch (error) {
     console.error("DELETE /api/banners/[id] error:", error);

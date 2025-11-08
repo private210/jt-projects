@@ -82,7 +82,7 @@ export default function BannerDialog({ open, onOpenChange, editingBanner, formDa
             <Label htmlFor="deskripsi">Deskripsi</Label>
             <Textarea
               id="deskripsi"
-              value={formData.deskripsi}
+              value={formData.deskripsi ?? ""}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
@@ -96,7 +96,7 @@ export default function BannerDialog({ open, onOpenChange, editingBanner, formDa
           </div>
 
           {/* Upload Gambar */}
-          <ImageUploadInput label="Gambar Banner" value={formData.image} onChange={(url) => setFormData((prev) => ({ ...prev, image: url }))} placeholder="https://example.com/banner.jpg" />
+          <ImageUploadInput label="Gambar Banner" value={formData.image ?? ""} onChange={(url) => setFormData((prev) => ({ ...prev, image: url }))} placeholder="https://example.com/banner.jpg" />
 
           {/* Switch aktif */}
           <div className="flex items-center space-x-2">

@@ -7,11 +7,28 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Edit, Trash2, Star, Package } from "lucide-react";
 import { toggleFavorite, deleteProducts } from "@/actions/products.action";
-import { toast } from "sonner"; // ✅ Tambahkan ini
-import { Product } from "@prisma/client";
+import { toast } from "sonner";
+import { Product as PrismaProduct } from "@prisma/client";
 
-export function ProductsTable({ products, onEdit, onDelete, onAdd }: any) {
-  const [localProducts, setLocalProducts] = useState(products);
+type Category = {
+  id: string;
+  nama: string;
+};
+
+type Product = PrismaProduct & {
+  categories?: Category[];
+};
+
+interface ProductsTableProps {
+  products: Product[];
+  onEdit: (product: any) => void;
+  onDelete: (id: string) => Promise<void>;
+  onAdd: () => void;
+  onToggleFavorite: (product: Product) => Promise<void>;
+}
+
+export function ProductsTable({ products, onEdit, onDelete, onAdd }: ProductsTableProps) {
+  const [localProducts, setLocalProducts] = useState<Product[]>(products ?? []);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
 
@@ -22,7 +39,7 @@ export function ProductsTable({ products, onEdit, onDelete, onAdd }: any) {
   // ✅ Toggle favorit dengan toast
   const handleToggleFavorite = (id: string) => {
     // update tampilan lokal segera
-    setLocalProducts((prev) => prev.map((p) => (p.id === id ? { ...p, isFavorite: !p.isFavorite } : p)));
+    setLocalProducts((prev: Product[]) => prev.map((p) => (p.id === id ? { ...p, isFavorite: !p.isFavorite } : p)));
 
     // Jalankan pembaruan ke database di background
     startTransition(async () => {
@@ -30,7 +47,7 @@ export function ProductsTable({ products, onEdit, onDelete, onAdd }: any) {
         const updated = await toggleFavorite(id);
 
         // ✅ Tampilkan toast berdasarkan status baru
-        const product = localProducts.find((p) => p.id === id);
+        const product = localProducts.find((p: Product) => p.id === id);
         const isNowFavorite = !product?.isFavorite;
 
         toast.success(isNowFavorite ? "Produk ditandai sebagai favorit ⭐" : "Produk dihapus dari favorit");
@@ -38,7 +55,7 @@ export function ProductsTable({ products, onEdit, onDelete, onAdd }: any) {
         console.error(err);
 
         // rollback jika gagal
-        setLocalProducts((prev) => prev.map((p) => (p.id === id ? { ...p, isFavorite: !p.isFavorite } : p)));
+        setLocalProducts((prev: Product[]) => prev.map((p) => (p.id === id ? { ...p, isFavorite: !p.isFavorite } : p)));
         toast.error("Gagal memperbarui status favorit");
       }
     });

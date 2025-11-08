@@ -25,7 +25,23 @@ export function BrandTable({ brands, onEdit, onDelete }: BrandTableProps) {
         {brands.map((brand) => (
           <TableRow key={brand.id}>
             <TableCell>{brand.nama}</TableCell>
-            <TableCell>{brand.image ? <Image src={brand.image} alt={brand.nama} className="w-12 h-12 object-cover rounded" width={30} height={30} /> : <Image className="h-6 w-6 text-gray-400" />}</TableCell>
+            <TableCell>
+              {brand.image ? (
+                <Image
+                  src={brand.image}
+                  alt={brand.nama}
+                  className="w-12 h-12 object-cover rounded"
+                  width={48}
+                  height={48}
+                />
+              ) : (
+                <div className="h-12 w-12 bg-gray-100 rounded flex items-center justify-center text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a4 4 0 014-4h10a4 4 0 014 4v10a4 4 0 01-4 4H7a4 4 0 01-4-4V7z" />
+                  </svg>
+                </div>
+              )}
+            </TableCell>
             <TableCell>{new Date(brand.createdAt).toLocaleDateString()}</TableCell>
             <TableCell className="text-right space-x-2">
               <Button variant="outline" size="sm" onClick={() => onEdit(brand)}>

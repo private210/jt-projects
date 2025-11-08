@@ -31,9 +31,17 @@ export function BrandDialog({ open, onOpenChange, formData, setFormData, onSubmi
             <Input value={formData.nama} onChange={(e) => setFormData({ ...formData, nama: e.target.value })} placeholder="Masukkan nama brand" required />
           </div>
           {/* Menggunakan ImageUploadInput */}
-          <ImageUploadInput label="Gambar Banner" value={formData.image} onChange={(url) => setFormData((prev) => ({ ...prev, image: url }))} placeholder="https://example.com/banner.jpg" />
-
-
+          <ImageUploadInput
+            label="Gambar Banner"
+            value={formData.image}
+            onChange={(url) =>
+              setFormData((prev: { nama: string; image: string }) => ({
+                ...prev,
+                image: url,
+              }))
+            }
+            placeholder="https://example.com/banner.jpg"
+          />
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Batal

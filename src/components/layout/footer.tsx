@@ -22,6 +22,7 @@ interface Marketplace {
 interface Contact {
   email: string;
   nomor_wa: string;
+  whatsapp: string | null;
   instagram: string | null;
   tiktok: string | null;
   facebook: string | null;
@@ -185,7 +186,7 @@ export default function Footer() {
                 <h2 className="mb-4 text-lg font-semibold">Marketplace</h2>
                 <div className="flex flex-wrap gap-3">
                   {marketplaceLinks.map((link) => (
-                                <a key={link.name} href={link.link} target="_blank" rel="noopener noreferrer" className={`w-16 h-16 rounded-full flex items-center justify-center ${link.bg} hover:scale-105 transition-transform shadow-md`}>
+                                <a key={link.name} href={link.link ?? "#"} target="_blank" rel="noopener noreferrer" className={`w-16 h-16 rounded-full flex items-center justify-center ${link.bg} hover:scale-105 transition-transform shadow-md`}>
                                   <Image src={link.logo} alt={link.name} width={50} height={50} className="invert brightness-0 saturate-200" /> 
                                 </a>
                               ))}
@@ -197,7 +198,7 @@ export default function Footer() {
                 <h2 className="mb-4 text-lg font-semibold">Social Media</h2>
                 <div className="flex space-x-4">
                    {socialMedia.map((link) => (
-                                <a key={link.name} href={link.link} target="_blank" rel="noopener noreferrer" className={`w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br ${link.bg} hover:scale-105 transition-transform shadow-md`}>
+                                <a key={link.name} href={link.link ?? "#"} target="_blank" rel="noopener noreferrer" className={`w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br ${link.bg} hover:scale-105 transition-transform shadow-md`}>
                                   <Image src={link.logo} alt={link.name} width={24} height={24} className="invert brightness-0 saturate-200" />
                                 </a>
                               ))}

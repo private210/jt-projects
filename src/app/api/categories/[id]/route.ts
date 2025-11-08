@@ -1,17 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-// ✅ GET kategori berdasarkan ID
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+// ✅ GET /api/categories/[id]
+export async function GET(_: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
+
   try {
     const category = await prisma.category.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         brandPartners: true,
       },
     });
 
-    if (!category) return NextResponse.json({ error: "Kategori tidak ditemukan" }, { status: 404 });
+    if (!category) {
+      return NextResponse.json({ error: "Kategori tidak ditemukan" }, { status: 404 });
+    }
 
     return NextResponse.json(category);
   } catch (error) {
@@ -19,10 +23,14 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
     return NextResponse.json({ error: "Gagal memuat kategori" }, { status: 500 });
   }
 }
-export async function PUT(req: Request) {
+
+// ✅ PUT /api/categories/[id]
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
+
   try {
-    const body = await req.json();
-    const { id, nama, brandPartnerIds } = body;
+    const body = await request.json();
+    const { nama, brandPartnerIds } = body;
 
     const category = await prisma.category.update({
       where: { id },
@@ -30,7 +38,7 @@ export async function PUT(req: Request) {
         nama,
         brandPartners: {
           set: [], // reset dulu
-          connect: brandPartnerIds?.map((id: string) => ({ id })) ?? [],
+          connect: brandPartnerIds?.map((bid: string) => ({ id: bid })) ?? [],
         },
       },
       include: { brandPartners: true },
@@ -38,18 +46,23 @@ export async function PUT(req: Request) {
 
     return NextResponse.json(category);
   } catch (error) {
-    console.error("Error updating category:", error);
-    return NextResponse.json({ error: "Failed to update category" }, { status: 500 });
+    console.error("❌ Error PUT /categories/[id]:", error);
+    return NextResponse.json({ error: "Gagal memperbarui kategori" }, { status: 500 });
   }
 }
 
-export async function DELETE(req: Request) {
+// ✅ DELETE /api/categories/[id]
+export async function DELETE(_: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
+
   try {
-    const { id } = await req.json();
-    await prisma.category.delete({ where: { id } });
-    return NextResponse.json({ message: "Category deleted" });
+    await prisma.category.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: "Kategori berhasil dihapus" });
   } catch (error) {
-    console.error("Error deleting category:", error);
-    return NextResponse.json({ error: "Failed to delete category" }, { status: 500 });
+    console.error("❌ Error DELETE /categories/[id]:", error);
+    return NextResponse.json({ error: "Gagal menghapus kategori" }, { status: 500 });
   }
 }
