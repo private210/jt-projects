@@ -6,7 +6,6 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack --no-lint",
     "start": "next start",
-    "lint": "eslint",
     "seed": "ts-node prisma/seed.ts"
   },
   "prisma": {
