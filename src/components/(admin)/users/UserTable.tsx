@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
 import UserForm from "./UserForm";
-import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
 
 export default function UserTable() {
@@ -16,7 +15,8 @@ export default function UserTable() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/users");
+      const res = await fetch("/api/users", { cache: "no-store" });
+      if (!res.ok) throw new Error("Gagal memuat data user");
       const data = await res.json();
       setUsers(data);
     } catch (error) {
@@ -27,7 +27,6 @@ export default function UserTable() {
   };
 
   const handleDelete = async (id: string, email: string) => {
-    // Prevent deleting self
     if ((session?.user as any)?.id === id) {
       alert("Anda tidak dapat menghapus akun sendiri!");
       return;
@@ -41,7 +40,6 @@ export default function UserTable() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       });
-
       const data = await res.json();
 
       if (!res.ok) {
@@ -93,13 +91,11 @@ export default function UserTable() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Login Method</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {users.map((user) => {
-                const isGoogleAccount = !user.password;
                 const isCurrentUser = (session?.user as any)?.id === user.id;
 
                 return (
@@ -107,9 +103,9 @@ export default function UserTable() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         {user.image ? (
-                          <Image src={user.image} alt={user.username} className="h-10 w-10 rounded-full mr-3" width={40} height={40} />
+                          <Image src={user.image} alt={user.username} width={40} height={40} className="h-10 w-10 rounded-full object-cover mr-3 border" />
                         ) : (
-                          <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold mr-3">{user.username.charAt(0).toUpperCase()}</div>
+                          <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold mr-3">{user.username?.charAt(0).toUpperCase()}</div>
                         )}
                         <div>
                           <div className="text-sm font-medium text-gray-900">
@@ -130,16 +126,6 @@ export default function UserTable() {
                         {user.role}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {isGoogleAccount ? (
-                        <div className="flex items-center gap-1 text-sm text-gray-700">
-                          <FcGoogle size={16} />
-                          <span>Google</span>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-gray-500">Email/Password</span>
-                      )}
-                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex gap-2">
                         <Button variant="secondary" size="sm" onClick={() => handleEdit(user)}>
@@ -159,7 +145,7 @@ export default function UserTable() {
       </div>
 
       {/* Modal Edit User */}
-      {showEditModal && (
+      {showEditModal && editUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
             <div className="flex justify-between items-center mb-4">

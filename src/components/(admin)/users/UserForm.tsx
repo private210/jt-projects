@@ -17,34 +17,25 @@ interface UserFormProps {
 }
 
 export default function UserForm({ onSuccess, initialData = {}, mode = "create" }: UserFormProps) {
-  const [form, setForm] = useState<{
-    username: string;
-    email: string;
-    password: string;
-    image: string | null;
-    role: "EDITOR" | "ADMIN" | "DEVELOPER";
-    isGoogleAccount: boolean;
-  }>({
+  const [form, setForm] = useState({
     username: "",
     email: "",
     password: "",
-    image: null,
-    role: "EDITOR",
-    isGoogleAccount: false,
+    image: null as string | null,
+    role: "EDITOR" as "EDITOR" | "ADMIN" | "DEVELOPER",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (initialData) {
-      setForm({
+    if (initialData && Object.keys(initialData).length > 0) {
+      setForm((prev) => ({
+        ...prev,
         username: initialData.username || "",
         email: initialData.email || "",
-        password: "",
         image: initialData.image || null,
         role: initialData.role || "EDITOR",
-        isGoogleAccount: !initialData.password, // Jika tidak ada password, berarti Google account
-      });
+      }));
     }
   }, [initialData]);
 
@@ -53,14 +44,12 @@ export default function UserForm({ onSuccess, initialData = {}, mode = "create" 
     setLoading(true);
     setError("");
 
-    // Validasi
     if (!form.username || !form.email || !form.role) {
       setError("Username, email, dan role harus diisi");
       setLoading(false);
       return;
     }
 
-    // Validasi email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(form.email)) {
       setError("Format email tidak valid");
@@ -68,149 +57,146 @@ export default function UserForm({ onSuccess, initialData = {}, mode = "create" 
       return;
     }
 
-    // Validasi password untuk user baru non-Google
-    if (mode === "create" && !form.isGoogleAccount && !form.password) {
-      setError("Password wajib diisi untuk user baru non-Google");
+    if (mode === "create" && !form.password) {
+      setError("Password wajib diisi untuk user baru");
       setLoading(false);
       return;
     }
 
     try {
       const method = mode === "edit" ? "PUT" : "POST";
-      const body =
+      const payload =
         mode === "edit"
-          ? JSON.stringify({
+          ? {
               id: initialData.id,
               email: form.email,
               username: form.username,
               image: form.image,
               role: form.role,
               password: form.password || undefined,
-            })
-          : JSON.stringify({
+            }
+          : {
               email: form.email,
               username: form.username,
-              password: form.password || undefined,
+              password: form.password,
               image: form.image,
               role: form.role,
-              isGoogleAccount: form.isGoogleAccount,
-            });
+            };
 
       const res = await fetch("/api/users", {
         method,
         headers: { "Content-Type": "application/json" },
-        body,
+        body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
-
       if (!res.ok) {
-        setError(data.error || "Gagal menyimpan user");
-        setLoading(false);
-        return;
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Gagal menyimpan user");
       }
 
-      setForm({ username: "", email: "", password: "",image: null, role: "EDITOR", isGoogleAccount: false });
+      setForm({
+        username: "",
+        email: "",
+        password: "",
+        image: null,
+        role: "EDITOR",
+      });
       onSuccess();
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Error saving user:", err);
-      setError("Terjadi kesalahan. Coba lagi.");
+      setError(err instanceof Error ? err.message || "Terjadi kesalahan. Coba lagi." : "Terjadi kesalahan. Coba lagi.");
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded text-sm">{error}</div>}
+    <div className="flex justify-center max-w-3xl">
+      <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-xl p-6 w-full max-w-3xl space-y-5 border border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-800 border-b pb-2">{mode === "edit" ? "Edit Pengguna" : "Tambah Pengguna"}</h2>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Username / Nama Lengkap <span className="text-red-500">*</span>
-        </label>
-        <input
-          className="border border-gray-300 p-2.5 w-full rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-          placeholder="John Doe"
-          value={form.username}
-          onChange={(e) => setForm({ ...form, username: e.target.value })}
-          required
-        />
-      </div>
+        {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded text-sm">{error}</div>}
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Email <span className="text-red-500">*</span>
-        </label>
-        <input
-          className="border border-gray-300 p-2.5 w-full rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
-          placeholder="john@example.com"
-          type="email"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-          disabled={mode === "edit"}
-          required
-        />
-        {mode === "edit" && <p className="text-xs text-gray-500 mt-1">Email tidak dapat diubah setelah dibuat</p>}
-      </div>
-
-      {mode === "create" && (
-        <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded">
-          <input
-            type="checkbox"
-            id="isGoogleAccount"
-            checked={form.isGoogleAccount}
-            onChange={(e) => setForm({ ...form, isGoogleAccount: e.target.checked, password: "" })}
-            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-          />
-          <label htmlFor="isGoogleAccount" className="text-sm text-gray-700 cursor-pointer">
-            Ini adalah akun Google (tidak perlu password)
-          </label>
-        </div>
-      )}
-
-      {!form.isGoogleAccount && (
+        {/* Username */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Password {mode === "create" && <span className="text-red-500">*</span>}
-            {mode === "edit" && <span className="text-gray-500 text-xs ml-1">(kosongkan jika tidak ingin mengubah)</span>}
+            Username / Nama Lengkap <span className="text-red-500">*</span>
           </label>
           <input
-            className="border border-gray-300 p-2.5 w-full rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            className="border border-gray-300 p-2.5 w-full rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            placeholder="John Doe"
+            value={form.username}
+            onChange={(e) => setForm({ ...form, username: e.target.value })}
+            required
+          />
+        </div>
+
+        {/* Email */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Email <span className="text-red-500">*</span>
+          </label>
+          <input
+            className="border border-gray-300 p-2.5 w-full rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+            placeholder="john@example.com"
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            disabled={mode === "edit"}
+            required
+          />
+          {mode === "edit" && <p className="text-xs text-gray-500 mt-1">Email tidak dapat diubah setelah dibuat</p>}
+        </div>
+
+        {/* Password */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Password {mode === "create" ? <span className="text-red-500">*</span> : <span className="text-gray-500 text-xs ml-1">(kosongkan jika tidak ingin mengubah)</span>}
+          </label>
+          <input
+            className="border border-gray-300 p-2.5 w-full rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             placeholder="••••••••"
             type="password"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
-            required={mode === "create" && !form.isGoogleAccount}
+            required={mode === "create"}
             minLength={6}
           />
           {mode === "create" && <p className="text-xs text-gray-500 mt-1">Minimal 6 karakter</p>}
         </div>
-      )}
 
-      <ImageUploadInput value={form.image ?? ""} onChange={(image) => setForm({ ...form, image })} />
+        {/* Upload Gambar */}
+        <ImageUploadInput value={form.image ?? ""} onChange={(image) => setForm({ ...form, image })} />
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Role <span className="text-red-500">*</span>
-        </label>
-        <select
-          className="border border-gray-300 p-2.5 w-full rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-          value={form.role}
-          onChange={(e) =>
-            setForm({ ...form, role: e.target.value as "EDITOR" | "ADMIN" | "DEVELOPER" })
-          }
-          required
-        >
-          <option value="EDITOR">EDITOR - Kelola Produk & Banner</option>
-          <option value="ADMIN">ADMIN - Akses Penuh (kecuali manage users)</option>
-          <option value="DEVELOPER">DEVELOPER - Full Access</option>
-        </select>
-      </div>
+        {/* Role */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Role <span className="text-red-500">*</span>
+          </label>
+          <select
+            className="border border-gray-300 p-2.5 w-full rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            value={form.role}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                role: e.target.value as "EDITOR" | "ADMIN" | "DEVELOPER",
+              })
+            }
+            required
+          >
+            <option value="EDITOR">EDITOR - Kelola Produk & Banner</option>
+            <option value="ADMIN">ADMIN - Akses Penuh (kecuali manage users)</option>
+            <option value="DEVELOPER">DEVELOPER - Full Access</option>
+          </select>
+        </div>
 
-      <div className="flex gap-2 pt-2">
-        <Button disabled={loading} type="submit" className="flex-1">
-          {loading ? "Menyimpan..." : mode === "edit" ? "Update User" : "Tambah User"}
-        </Button>
-      </div>
-    </form>
+        {/* Tombol Submit */}
+        <div className="flex justify-end pt-3">
+          <Button disabled={loading} type="submit" className="w-full md:w-auto px-6">
+            {loading ? "Menyimpan..." : mode === "edit" ? "Update User" : "Tambah User"}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }
