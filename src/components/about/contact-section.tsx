@@ -2,8 +2,6 @@
 
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 
 export default function ContactSection() {
   const contactInfo = [

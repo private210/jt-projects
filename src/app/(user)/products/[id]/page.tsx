@@ -4,13 +4,15 @@ import ProductDescription from "@/components/products/[id]/ProductDescription";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import prisma from "@/lib/prisma";
 
+// ✅ gunakan Promise<void> bukan ProductPageProps secara langsung
 interface ProductPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default async function ProdukDetailPage({ params }: ProductPageProps) {
+export default async function ProdukDetailPage(props: ProductPageProps) {
+  const { id } = await props.params; // ✅ destructuring dari Promise
   const product = await prisma.product.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       categories: true,
       images: { orderBy: { urutan: "asc" } },
