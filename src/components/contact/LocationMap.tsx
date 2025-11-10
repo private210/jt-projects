@@ -11,7 +11,7 @@ interface ContactData {
 
 export default function LocationMap() {
   const [contact, setContact] = useState<ContactData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchContact() {

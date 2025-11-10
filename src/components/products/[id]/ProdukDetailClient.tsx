@@ -75,11 +75,14 @@ export default function ProdukDetailClient() {
           }
           throw new Error("Gagal memuat produk");
         }
-        const data = await res.json();
+
+        const data: Product = await res.json();
         setProduct(data);
-      } catch (err: any) {
+      } catch (err) {
         console.error(err);
-        setError(err.message);
+        // ✅ Perbaikan type-safe
+        const message = err instanceof Error ? err.message : "Terjadi kesalahan tak terduga";
+        setError(message);
       } finally {
         setLoading(false);
       }

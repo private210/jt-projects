@@ -101,7 +101,7 @@ export default function SocialMedia() {
           <h2 className="font-semibold mb-4">Sosial Media Kami</h2>
           <div className="flex flex-wrap gap-4 mb-6">
             {socialMediaLinks.map((link) => (
-              <a key={link.name} href={link.link} target="_blank" rel="noopener noreferrer" className={`w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br ${link.bg} hover:scale-105 transition-transform shadow-md`}>
+              <a key={link.name} href={link.link} target="_blank" rel="noopener noreferrer" className={`w-12 h-12 rounded-full flex items-center justify-center bg-linear-to-br ${link.bg} hover:scale-105 transition-transform shadow-md`}>
                 <Image src={link.logo} alt={link.name} width={24} height={24} className="invert brightness-0 saturate-200" />
               </a>
             ))}

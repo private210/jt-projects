@@ -1,11 +1,20 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Package, Star, Layers, Tag } from "lucide-react";
 import { Product, Category } from "@prisma/client";
 
-export function ProductsStats({ products, categories }: { products: Product[]; categories: Category[] }) {
+// ✅ Tipe Produk dengan relasi kategori
+type ProductWithCategories = Product & {
+  categories?: Category[];
+};
+
+interface ProductsStatsProps {
+  products: ProductWithCategories[];
+  categories: Category[];
+}
+
+export function ProductsStats({ products, categories }: ProductsStatsProps) {
   const total = products.length;
   const fav = products.filter((p) => p.isFavorite).length;
-  const categorized = products.filter((p) => (p as any).categories?.length > 0).length;
+  const categorized = products.filter((p) => p.categories && p.categories.length > 0).length;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -15,18 +24,21 @@ export function ProductsStats({ products, categories }: { products: Product[]; c
         </CardHeader>
         <CardContent>{total}</CardContent>
       </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Produk Favorit</CardTitle>
         </CardHeader>
         <CardContent>{fav}</CardContent>
       </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Terkategorisasi</CardTitle>
         </CardHeader>
         <CardContent>{categorized}</CardContent>
       </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Kategori Aktif</CardTitle>

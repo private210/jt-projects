@@ -131,7 +131,7 @@ export default function Footer() {
             {/* Kolom 1: Profil */}
             <div className="flex flex-col">
               <Link href="/" className="flex items-start mb-4">
-                <div className="mr-3 flex-shrink-0">
+                <div className="mr-3 shrink-0">
                   <Image src={logoUrl} alt="Logo" width={40} height={40} className="h-10 w-10 object-cover rounded" />
                 </div>
                 <div className="flex flex-col">
@@ -198,7 +198,7 @@ export default function Footer() {
                 <h2 className="mb-4 text-lg font-semibold">Social Media</h2>
                 <div className="flex space-x-4">
                    {socialMedia.map((link) => (
-                                <a key={link.name} href={link.link ?? "#"} target="_blank" rel="noopener noreferrer" className={`w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br ${link.bg} hover:scale-105 transition-transform shadow-md`}>
+                                <a key={link.name} href={link.link ?? "#"} target="_blank" rel="noopener noreferrer" className={`w-12 h-12 rounded-full flex items-center justify-center bg-linear-to-br ${link.bg} hover:scale-105 transition-transform shadow-md`}>
                                   <Image src={link.logo} alt={link.name} width={24} height={24} className="invert brightness-0 saturate-200" />
                                 </a>
                               ))}

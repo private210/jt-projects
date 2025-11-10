@@ -78,7 +78,7 @@ export default function HeaderAdmin() {
         </div>
 
         {/* === Logo Perusahaan === */}
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <Image src={logoUrl} alt="Logo" width={100} height={100} className="object-contain rounded-md" priority />
         </div>
       </div>
@@ -103,7 +103,7 @@ export default function HeaderAdmin() {
                   data-[state=active]:after:absolute 
                   data-[state=active]:after:bottom-0 
                   data-[state=active]:after:left-0 
-                  data-[state=active]:after:h-[2px] 
+                  data-[state=active]:after:h-2px
                   data-[state=active]:after:w-full 
                   data-[state=active]:after:bg-red-600"
               >

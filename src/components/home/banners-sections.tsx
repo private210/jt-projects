@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import Autoplay from "embla-carousel-autoplay";
-
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 interface Banner {
@@ -32,15 +31,15 @@ export default function BannersSections() {
 
         const data: Banner[] = await res.json();
 
-        // Hanya tampilkan banner aktif
         const active = data.filter((b) => b.isActive);
-        // Urutkan berdasarkan urutan (jika ada)
         active.sort((a, b) => a.urutan - b.urutan);
 
         setBanners(active);
-      } catch (err: any) {
+      } catch (err) {
         console.error(err);
-        setError(err.message);
+        // 🔧 Perbaikan type-safe tanpa "any"
+        const message = err instanceof Error ? err.message : "Terjadi kesalahan tidak diketahui";
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -93,7 +92,6 @@ export default function BannersSections() {
             ))}
           </CarouselContent>
 
-          {/* Tombol Navigasi */}
           <CarouselPrevious className="left-2 sm:left-6 bg-black/30 hover:bg-black/50 text-white" />
           <CarouselNext className="right-2 sm:right-6 bg-black/30 hover:bg-black/50 text-white" />
         </Carousel>

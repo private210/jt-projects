@@ -92,7 +92,7 @@ export default function ProductCard({ product }: { product: Product }) {
         </div>
 
         {/* Detail Produk */}
-        <div className="px-3 py-4 flex flex-col flex-grow">
+        <div className="px-3 py-4 flex flex-col grow">
           {/* Judul Produk */}
           <Link href={`/products/${product.id}`}>
             <h5 className="text-sm font-semibold line-clamp-2 hover:text-red-600 transition-colors">{product.nama}</h5>
@@ -101,7 +101,7 @@ export default function ProductCard({ product }: { product: Product }) {
           {/* Deskripsi Singkat */}
           {shortDescription && <p className="text-xs text-gray-500 mt-1 line-clamp-2">{shortDescription}</p>}
 
-          <div className="flex-grow" />
+          <div className="grow" />
 
           {/* Harga dan Stok - Dalam satu baris */}
           <div className="mt-2 flex items-start justify-between gap-2">

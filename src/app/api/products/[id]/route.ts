@@ -1,6 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+interface ProductOptionInput {
+  warna: string;
+  variant: string;
+  hargaAsli: string | number;
+  hargaJual: string | number;
+  stock: string | number;
+  images?: string[];
+  specs?: {
+    deskripsi_spec: string;
+    image?: string | null;
+  }[];
+}
+
+interface ProductUpdateInput {
+  nama: string;
+  deskripsi: string;
+  isFavorite?: boolean;
+  categoryIds?: string[];
+  images?: string[];
+  options?: ProductOptionInput[];
+}
+
 // ✅ GET /api/products/[id]
 export async function GET(_: NextRequest, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
@@ -36,7 +58,8 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
   const { id } = await context.params;
 
   try {
-    const { nama, deskripsi, isFavorite, categoryIds, images, options } = await request.json();
+    const body: ProductUpdateInput = await request.json();
+    const { nama, deskripsi, isFavorite, categoryIds, images, options } = body;
 
     // Hapus relasi lama sebelum update ulang
     await prisma.productOption.deleteMany({ where: { productId: id } });
@@ -50,31 +73,31 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
         isFavorite: Boolean(isFavorite),
         categories: {
           set: [],
-          connect: (categoryIds || []).map((cid: string) => ({ id: cid })),
+          connect: (categoryIds ?? []).map((cid) => ({ id: cid })),
         },
         images: {
-          create: (images || []).map((url: string, i: number) => ({
+          create: (images ?? []).map((url, i) => ({
             imageUrl: url,
             urutan: i,
           })),
         },
         options: {
-          create: (options || []).map((opt: any) => ({
+          create: (options ?? []).map((opt) => ({
             warna: opt.warna,
             variant: opt.variant,
-            hargaAsli: parseFloat(opt.hargaAsli),
-            hargaJual: parseFloat(opt.hargaJual),
-            stock: parseInt(opt.stock),
+            hargaAsli: Number(opt.hargaAsli),
+            hargaJual: Number(opt.hargaJual),
+            stock: Number(opt.stock),
             images: {
-              create: (opt.images || []).map((url: string, i: number) => ({
+              create: (opt.images ?? []).map((url, i) => ({
                 imageUrl: url,
                 urutan: i,
               })),
             },
             specs: {
-              create: (opt.specs || []).map((s: any) => ({
+              create: (opt.specs ?? []).map((s) => ({
                 deskripsi_spec: s.deskripsi_spec,
-                image: s.image || null,
+                image: s.image ?? null,
               })),
             },
           })),

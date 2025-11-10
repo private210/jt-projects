@@ -59,7 +59,7 @@ export const authOptions: AuthOptions = {
 
   callbacks: {
     // ✅ Sign In: Validasi apakah user boleh login
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       // Jika login dengan Google
       if (account?.provider === "google") {
         const email = user.email;

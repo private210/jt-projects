@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Beams from "@/components/Beams";
 import { motion } from "framer-motion";
 import RotatingText from "@/components/RotatingText";
 import { CircleCheckBig } from "lucide-react";
@@ -86,7 +85,7 @@ export default function HeroSection() {
           </div>
         ) : (
           // 🔹 Fallback background dengan gradient + blur halus
-          <div className="absolute inset-0 bg-gradient-to-b from-joyo-black/80 to-joyo-red/40 backdrop-blur-md" />
+          <div className="absolute inset-0 bg-linear-to-b from-joyo-black/80 to-joyo-red/40 backdrop-blur-md" />
         )}
       </div>
 

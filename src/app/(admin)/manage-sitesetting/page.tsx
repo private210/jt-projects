@@ -11,7 +11,7 @@ import { SettingSite } from "@prisma/client";
 import { useSiteSettings } from "@/app/contexts/SiteSettingsContext";
 import { ImageUploadInput } from "@/components/ui/image-upload-input";
 
-
+/* ============ SIMPLE TOAST FALLBACK ============ */
 function useToast() {
   const toast = ({ title, description, variant }: { title?: string; description?: string; variant?: string }) => {
     if (typeof window !== "undefined") {
@@ -25,6 +25,7 @@ function useToast() {
   return { toast };
 }
 
+/* ============ TYPES ============ */
 interface SiteSettingFormData {
   logo: string;
   nama_company: string;
@@ -34,8 +35,9 @@ interface SiteSettingFormData {
   metadesc: string;
 }
 
+/* ============ COMPONENT ============ */
 export default function ManageSiteSettingPage() {
-  const [siteSetting, setSiteSetting] = useState<SettingSite | null>(null);
+  const [, setSiteSetting] = useState<SettingSite | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
@@ -52,39 +54,49 @@ export default function ManageSiteSettingPage() {
     },
   });
 
+  /* ✅ Perbaikan useEffect agar aman dan bersih */
   useEffect(() => {
-    fetchSiteSetting();
-  }, []);
+    let isMounted = true; // Cegah update state jika komponen unmounted
 
-  const fetchSiteSetting = async () => {
-    try {
-      const response = await fetch("/api/site-settings");
-      if (!response.ok) throw new Error("Failed to fetch");
+    const fetchSiteSetting = async () => {
+      try {
+        const response = await fetch("/api/site-settings", { cache: "no-store" });
+        if (!response.ok) throw new Error("Failed to fetch site settings");
 
-      const data = await response.json();
-      if (data) {
-        setSiteSetting(data);
-        form.reset({
-          logo: data.logo || "",
-          nama_company: data.nama_company || "",
-          metadataTitle: data.metadataTitle || "",
-          favicon: data.favicon || "",
-          metakeyword: data.metakeyword || "",
-          metadesc: data.metadesc || "",
-        });
+        const data = await response.json();
+        if (isMounted && data) {
+          setSiteSetting(data);
+          form.reset({
+            logo: data.logo || "",
+            nama_company: data.nama_company || "",
+            metadataTitle: data.metadataTitle || "",
+            favicon: data.favicon || "",
+            metakeyword: data.metakeyword || "",
+            metadesc: data.metadesc || "",
+          });
+        }
+      } catch (error) {
+        console.error("Gagal memuat site settings:", error);
+        if (isMounted) {
+          toast({
+            title: "Error",
+            description: "Gagal memuat site settings",
+            variant: "destructive",
+          });
+        }
+      } finally {
+        if (isMounted) setLoading(false);
       }
-    } catch (error) {
-      console.error("Failed to fetch site settings:", error);
-      toast({
-        title: "Error",
-        description: "Gagal memuat site settings",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
+    fetchSiteSetting();
+
+    return () => {
+      isMounted = false; // cleanup agar tidak setState setelah unmount
+    };
+  }, [form, toast]);
+
+  /* ✅ Submit Handler */
   const onSubmit = async (data: SiteSettingFormData) => {
     setSubmitting(true);
     try {
@@ -94,12 +106,10 @@ export default function ManageSiteSettingPage() {
         body: JSON.stringify(data),
       });
 
-      if (!response.ok) throw new Error("Failed to update");
+      if (!response.ok) throw new Error("Failed to update site settings");
 
       const updated = await response.json();
       setSiteSetting(updated);
-
-      // Refresh site settings context
       await refreshSettings();
 
       toast({
@@ -107,12 +117,9 @@ export default function ManageSiteSettingPage() {
         description: "Site settings berhasil diperbarui! Halaman akan dimuat ulang...",
       });
 
-      // Reload page to apply changes
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
+      setTimeout(() => window.location.reload(), 1500);
     } catch (error) {
-      console.error("Failed to update site settings:", error);
+      console.error("Gagal memperbarui site settings:", error);
       toast({
         title: "Error",
         description: "Gagal memperbarui site settings",
@@ -123,6 +130,7 @@ export default function ManageSiteSettingPage() {
     }
   };
 
+  /* ✅ Loading state */
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -131,6 +139,7 @@ export default function ManageSiteSettingPage() {
     );
   }
 
+  /* ✅ Render form */
   return (
     <div className="space-y-6 p-6">
       <h1 className="text-3xl font-bold">Kelola Site Settings</h1>
@@ -142,7 +151,7 @@ export default function ManageSiteSettingPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* Company Name */}
+              {/* Nama Perusahaan */}
               <FormField
                 control={form.control}
                 name="nama_company"
@@ -158,7 +167,7 @@ export default function ManageSiteSettingPage() {
                 )}
               />
 
-              {/* Logo URL - GANTI INI */}
+              {/* Logo */}
               <FormField
                 control={form.control}
                 name="logo"
@@ -171,14 +180,14 @@ export default function ManageSiteSettingPage() {
                 )}
               />
 
-              {/* Favicon - GANTI INI */}
+              {/* Favicon */}
               <FormField
                 control={form.control}
                 name="favicon"
                 render={({ field }) => (
                   <FormItem>
                     <ImageUploadInput label="Favicon" value={field.value} onChange={field.onChange} placeholder="https://example.com/favicon.ico" />
-                    <FormDescription>Icon kecil yang muncul di tab browser (format: .ico, .png, .svg)</FormDescription>
+                    <FormDescription>Icon kecil yang muncul di tab browser</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -194,13 +203,13 @@ export default function ManageSiteSettingPage() {
                     <FormControl>
                       <Input {...field} placeholder="Joyo Tech ID - Solusi Teknologi Terpercaya" />
                     </FormControl>
-                    <FormDescription>Judul yang muncul di tab browser dan hasil pencarian Google</FormDescription>
+                    <FormDescription>Judul yang muncul di tab browser dan hasil pencarian</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Meta Keywords */}
+              {/* Keywords */}
               <FormField
                 control={form.control}
                 name="metakeyword"
@@ -210,13 +219,13 @@ export default function ManageSiteSettingPage() {
                     <FormControl>
                       <Textarea {...field} rows={3} placeholder="toko elektronik, handphone, laptop, gadget, ponorogo" />
                     </FormControl>
-                    <FormDescription>Kata kunci untuk SEO (pisahkan dengan koma)</FormDescription>
+                    <FormDescription>Kata kunci SEO, pisahkan dengan koma</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Meta Description */}
+              {/* Description */}
               <FormField
                 control={form.control}
                 name="metadesc"
@@ -224,9 +233,9 @@ export default function ManageSiteSettingPage() {
                   <FormItem>
                     <FormLabel>Meta Description</FormLabel>
                     <FormControl>
-                      <Textarea {...field} rows={4} placeholder="Joyo Tech ID menyediakan berbagai produk elektronik berkualitas dengan harga terbaik di Ponorogo..." />
+                      <Textarea {...field} rows={4} placeholder="Deskripsi singkat website..." />
                     </FormControl>
-                    <FormDescription>Deskripsi singkat yang muncul di hasil pencarian Google (max 160 karakter)</FormDescription>
+                    <FormDescription>Deskripsi singkat untuk hasil pencarian Google</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -240,16 +249,16 @@ export default function ManageSiteSettingPage() {
         </CardContent>
       </Card>
 
-      {/* Info Card */}
+      {/* Info */}
       <Card className="border-blue-200 bg-blue-50">
         <CardContent className="pt-6">
           <h3 className="font-semibold mb-2 text-blue-900">ℹ️ Informasi Penting</h3>
           <ul className="text-sm text-blue-800 space-y-1">
             <li>• Perubahan akan diterapkan ke seluruh website</li>
-            <li>• Logo dan favicon harus berupa URL yang valid</li>
-            <li>• Halaman akan dimuat ulang setelah perubahan disimpan</li>
-            <li>• Pastikan ukuran logo tidak terlalu besar (max 2MB)</li>
-            <li>• Favicon sebaiknya berukuran 32x32px atau 64x64px</li>
+            <li>• Logo dan favicon harus berupa URL valid</li>
+            <li>• Halaman akan dimuat ulang setelah disimpan</li>
+            <li>• Ukuran logo max 2MB</li>
+            <li>• Favicon sebaiknya 32x32px atau 64x64px</li>
           </ul>
         </CardContent>
       </Card>

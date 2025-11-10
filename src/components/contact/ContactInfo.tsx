@@ -48,7 +48,7 @@ export default function ContactInfo() {
                 {item.label}:
               </span>
             </div>
-            <span className="text-gray-600 break-words">{item.value}</span>
+            <span className="text-gray-600 warp-break-words">{item.value}</span>
           </li>
         ))}
       </ul>

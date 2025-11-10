@@ -6,12 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ImageUploadInput } from "@/components/ui/image-upload-input";
 
+// ✅ Buat tipe khusus untuk data form
+interface BrandFormData {
+  nama: string;
+  image: string;
+}
+
 interface BrandDialogProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  formData: { nama: string; image: string };
-  setFormData: (data: any) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  formData: BrandFormData;
+  setFormData: React.Dispatch<React.SetStateAction<BrandFormData>>;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   isEditing: boolean;
   submitting: boolean;
 }
@@ -28,20 +34,32 @@ export function BrandDialog({ open, onOpenChange, formData, setFormData, onSubmi
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <Label className="mb-4">Nama Brand</Label>
-            <Input value={formData.nama} onChange={(e) => setFormData({ ...formData, nama: e.target.value })} placeholder="Masukkan nama brand" required />
+            <Input
+              value={formData.nama}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  nama: e.target.value,
+                }))
+              }
+              placeholder="Masukkan nama brand"
+              required
+            />
           </div>
-          {/* Menggunakan ImageUploadInput */}
+
+          {/* ✅ ImageUploadInput sudah ditikkan dengan benar */}
           <ImageUploadInput
             label="Gambar Banner"
             value={formData.image}
             onChange={(url) =>
-              setFormData((prev: { nama: string; image: string }) => ({
+              setFormData((prev) => ({
                 ...prev,
                 image: url,
               }))
             }
             placeholder="https://example.com/banner.jpg"
           />
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Batal

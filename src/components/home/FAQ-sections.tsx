@@ -14,7 +14,6 @@ interface FAQ {
 
 export default function FAQSection() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
-  const [loading, setLoading] = useState(true);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -62,7 +61,7 @@ export default function FAQSection() {
               >
                 <button onClick={() => toggleFAQ(index)} className="w-full px-6 py-5 text-left flex justify-between items-center gap-4">
                   <span className="font-semibold text-gray-900 flex-1">{faq.pertanyaan}</span>
-                  <div className="flex-shrink-0">{openIndex === index ? <ChevronUp className="w-5 h-5 text-red-600" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}</div>
+                  <div className="shrink-0">{openIndex === index ? <ChevronUp className="w-5 h-5 text-red-600" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}</div>
                 </button>
 
                 {openIndex === index && (

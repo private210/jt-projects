@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { FcGoogle } from "react-icons/fc";
+// import { FcGoogle } from "react-icons/fc";
 
 export default function LoginModal({ onClose }: { onClose: () => void }) {
   const [email, setEmail] = useState("");
@@ -38,38 +38,38 @@ export default function LoginModal({ onClose }: { onClose: () => void }) {
   };
 
   // --- Login dengan Google
-  const handleGoogleLogin = async () => {
-    try {
-      setLoading(true);
-      setError("");
+  // const handleGoogleLogin = async () => {
+  //   try {
+  //     setLoading(true);
+  //     setError("");
 
-      const result = await signIn("google", {
-        redirect: false,
-        callbackUrl: "/dashboard",
-      });
+  //     const result = await signIn("google", {
+  //       redirect: false,
+  //       callbackUrl: "/dashboard",
+  //     });
 
-      if (result?.error) {
-        // Error dari NextAuth
-        if (result.error === "OAuthAccountNotLinked") {
-          setError("Email sudah terdaftar dengan metode login lain.");
-        } else if (result.error === "AccessDenied") {
-          setError("Akun Google Anda belum terdaftar. Hubungi admin untuk mendaftarkan akun Anda.");
-        } else {
-          setError("Gagal login dengan Google. Silakan coba lagi.");
-        }
-        setLoading(false);
-      } else if (result?.ok) {
-        window.location.href = "/dashboard";
-      }
-    } catch (err) {
-      console.error("Google login error:", err);
-      setError("Gagal login dengan Google.");
-      setLoading(false);
-    }
-  };
+  //     if (result?.error) {
+  //       // Error dari NextAuth
+  //       if (result.error === "OAuthAccountNotLinked") {
+  //         setError("Email sudah terdaftar dengan metode login lain.");
+  //       } else if (result.error === "AccessDenied") {
+  //         setError("Akun Google Anda belum terdaftar. Hubungi admin untuk mendaftarkan akun Anda.");
+  //       } else {
+  //         setError("Gagal login dengan Google. Silakan coba lagi.");
+  //       }
+  //       setLoading(false);
+  //     } else if (result?.ok) {
+  //       window.location.href = "/dashboard";
+  //     }
+  //   } catch (err) {
+  //     console.error("Google login error:", err);
+  //     setError("Gagal login dengan Google.");
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-100 p-4">
       <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md relative animate-fadeIn">
         {/* Tombol close */}
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl leading-none" aria-label="Close" disabled={loading}>

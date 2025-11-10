@@ -24,7 +24,7 @@ export default function ProductsPage() {
 
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Filter Sidebar */}
-        <div className="w-full lg:w-64 flex-shrink-0">
+        <div className="w-full lg:w-64 shrink-0">
           <FilterBar onFilterChange={setFilters} />
         </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -10,7 +10,6 @@ import { Switch } from "@/components/ui/switch";
 import { useForm } from "react-hook-form";
 import { FAQ } from "@prisma/client";
 import { Pencil, Trash2, Plus } from "lucide-react";
-
 
 function useToast() {
   const toast = ({ title, description, variant }: { title?: string; description?: string; variant?: string }) => {
@@ -33,7 +32,7 @@ interface FAQFormData {
 
 export default function ManageFAQPage() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -47,29 +46,18 @@ export default function ManageFAQPage() {
       isActive: true,
     },
   });
-
+  const fetchFAQs = useCallback(async () => {
+    try {
+      const res = await fetch("/api/faqs");
+      const data = await res.json();
+      setFaqs(data);
+    } catch (err) {
+      console.error("Gagal memuat FAQ:", err);
+    }
+  }, []);
   useEffect(() => {
     fetchFAQs();
-  }, []);
-
-  const fetchFAQs = async () => {
-    try {
-      const response = await fetch("/api/faq?all=true");
-      if (!response.ok) throw new Error("Failed to fetch");
-
-      const data = await response.json();
-      setFaqs(data);
-    } catch (error) {
-      console.error("Failed to fetch FAQs:", error);
-      toast({
-        title: "Error",
-        description: "Gagal memuat data FAQ",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchFAQs]);
 
   const onSubmit = async (data: FAQFormData) => {
     setSubmitting(true);

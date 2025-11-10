@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -10,18 +11,21 @@ import { toggleFavorite, deleteProducts } from "@/actions/products.action";
 import { toast } from "sonner";
 import { Product as PrismaProduct } from "@prisma/client";
 
+// ✅ Tipe kategori produk
 type Category = {
   id: string;
   nama: string;
 };
 
+// ✅ Produk dengan relasi kategori
 type Product = PrismaProduct & {
   categories?: Category[];
 };
 
+// ✅ Props untuk komponen tabel
 interface ProductsTableProps {
   products: Product[];
-  onEdit: (product: any) => void;
+  onEdit: (product: Product) => void;
   onDelete: (id: string) => Promise<void>;
   onAdd: () => void;
   onToggleFavorite: (product: Product) => Promise<void>;
@@ -36,36 +40,30 @@ export function ProductsTable({ products, onEdit, onDelete, onAdd }: ProductsTab
     setLocalProducts(products);
   }, [products]);
 
-  // ✅ Toggle favorit dengan toast
+  // ✅ Toggle favorit dengan update UI cepat
   const handleToggleFavorite = (id: string) => {
-    // update tampilan lokal segera
-    setLocalProducts((prev: Product[]) => prev.map((p) => (p.id === id ? { ...p, isFavorite: !p.isFavorite } : p)));
+    setLocalProducts((prev) => prev.map((p) => (p.id === id ? { ...p, isFavorite: !p.isFavorite } : p)));
 
-    // Jalankan pembaruan ke database di background
     startTransition(async () => {
       try {
-        const updated = await toggleFavorite(id);
-
-        // ✅ Tampilkan toast berdasarkan status baru
-        const product = localProducts.find((p: Product) => p.id === id);
-        const isNowFavorite = !product?.isFavorite;
-
+        await toggleFavorite(id);
+        const updatedProduct = localProducts.find((p) => p.id === id);
+        const isNowFavorite = !updatedProduct?.isFavorite;
         toast.success(isNowFavorite ? "Produk ditandai sebagai favorit ⭐" : "Produk dihapus dari favorit");
       } catch (err) {
         console.error(err);
-
-        // rollback jika gagal
-        setLocalProducts((prev: Product[]) => prev.map((p) => (p.id === id ? { ...p, isFavorite: !p.isFavorite } : p)));
+        setLocalProducts((prev) => prev.map((p) => (p.id === id ? { ...p, isFavorite: !p.isFavorite } : p)));
         toast.error("Gagal memperbarui status favorit");
       }
     });
   };
 
-  // ✅ Fungsi seleksi dan hapus seperti sebelumnya
+  // ✅ Seleksi produk
   const handleSelect = (id: string) => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
+  // ✅ Pilih semua
   const handleSelectAll = () => {
     if (selectedIds.length === localProducts.length) {
       setSelectedIds([]);
@@ -74,6 +72,7 @@ export function ProductsTable({ products, onEdit, onDelete, onAdd }: ProductsTab
     }
   };
 
+  // ✅ Hapus terpilih
   const handleDeleteSelected = () => {
     if (selectedIds.length === 0) return;
     if (!confirm(`Hapus ${selectedIds.length} produk terpilih?`)) return;
@@ -93,16 +92,18 @@ export function ProductsTable({ products, onEdit, onDelete, onAdd }: ProductsTab
     });
   };
 
+  // ✅ Hapus semua
   const handleDeleteAll = () => {
     if (localProducts.length === 0) return;
     if (!confirm("Hapus SEMUA produk?")) return;
 
+    const allIds = localProducts.map((p) => p.id);
     setLocalProducts([]);
     setSelectedIds([]);
 
     startTransition(async () => {
       try {
-        await deleteProducts(localProducts.map((p) => p.id));
+        await deleteProducts(allIds);
         toast.success("Semua produk berhasil dihapus");
       } catch (err) {
         console.error(err);
@@ -174,7 +175,7 @@ export function ProductsTable({ products, onEdit, onDelete, onAdd }: ProductsTab
                   </TableCell>
                   <TableCell>{p.deskripsi}</TableCell>
                   <TableCell>
-                    {p.categories?.map((c: any) => (
+                    {p.categories?.map((c) => (
                       <Badge key={c.id} variant="outline" className="text-xs mr-1">
                         {c.nama}
                       </Badge>

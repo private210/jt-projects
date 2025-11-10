@@ -2,184 +2,118 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import { CategoryDialog } from "@/components/(admin)/categories/category-dialog";
 import { CategoryTable } from "@/components/(admin)/categories/category-table";
-import { CategoryStats } from "@/components/(admin)/categories/category-stats";
-import { CategoryAlert } from "@/components/(admin)/categories/category-alerts";
-import { Loader2, Plus } from "lucide-react";
+import { toast } from "sonner";
+import { Category, BrandPartner, CategoryFormData, CategoryInitialData } from "@/types/category";
 
 export default function ManageCategories() {
-  const [categories, setCategories] = useState<any[]>([]);
-  const [brands, setBrands] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<BrandPartner[]>([]);
+  const [editData, setEditData] = useState<CategoryInitialData | undefined>();
   const [open, setOpen] = useState(false);
-  const [editData, setEditData] = useState<any | null>(null);
-  const [alert, setAlert] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // 🔹 Ambil data kategori & brand partner
   useEffect(() => {
+    async function fetchData() {
+      try {
+        const [catRes, brandRes] = await Promise.all([fetch("/api/categories"), fetch("/api/brands")]);
+
+        if (!catRes.ok || !brandRes.ok) {
+          throw new Error("Gagal memuat data kategori atau brand");
+        }
+
+        const catData: Category[] = await catRes.json();
+        const brandData: BrandPartner[] = await brandRes.json();
+
+        setCategories(catData);
+        setBrands(brandData);
+      } catch (err) {
+        console.error(err);
+        toast.error("Gagal memuat data");
+      } finally {
+        setLoading(false);
+      }
+    }
+
     fetchData();
   }, []);
 
-  useEffect(() => {
-    if (alert) {
-      const timer = setTimeout(() => setAlert(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [alert]);
-
-  async function fetchData() {
-    setLoading(true);
+  // 🔹 Simpan atau perbarui kategori
+  const handleSave = async (data: CategoryFormData) => {
     try {
-      await Promise.all([fetchCategories(), fetchBrands()]);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      setAlert({
-        type: "error",
-        title: "Gagal Memuat Data",
-        message: "Terjadi kesalahan saat memuat data",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function fetchCategories() {
-    try {
-      const res = await fetch("/api/categories");
-      if (!res.ok) throw new Error("Failed to fetch categories");
-      const data = await res.json();
-      setCategories(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-      throw error;
-    }
-  }
-
-  async function fetchBrands() {
-    try {
-      const res = await fetch("/api/brands");
-      if (!res.ok) throw new Error("Failed to fetch brands");
-      const data = await res.json();
-      setBrands(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Error fetching brands:", error);
-      throw error;
-    }
-  }
-
-  const handleSave = async (data: any) => {
-    try {
-      const method = editData ? "PUT" : "POST";
       const payload = editData ? { ...data, id: editData.id } : data;
 
-      const res = await fetch("/api/categories", {
-        method,
+      const res = await fetch(`/api/categories${editData ? `/${editData.id}` : ""}`, {
+        method: editData ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      const result = await res.json();
+      if (!res.ok) throw new Error("Gagal menyimpan kategori");
 
-      if (!res.ok) {
-        setAlert({
-          type: "error",
-          title: "Gagal Menyimpan",
-          message: result.error || "Terjadi kesalahan saat menyimpan kategori",
-        });
-        return;
-      }
-
-      setAlert({
-        type: "success",
-        title: "Berhasil",
-        message: editData ? "Kategori berhasil diperbarui!" : "Kategori berhasil ditambahkan!",
-      });
-
-      await fetchCategories();
-      setEditData(null);
+      toast.success(`Kategori berhasil ${editData ? "diperbarui" : "ditambahkan"}`);
       setOpen(false);
-    } catch (error) {
-      console.error("Error saving category:", error);
-      setAlert({
-        type: "error",
-        title: "Gagal",
-        message: "Terjadi kesalahan saat menyimpan kategori",
-      });
+      setEditData(undefined);
+
+      // 🔄 Refresh data kategori
+      const newData = await fetch("/api/categories").then((r) => r.json());
+      setCategories(newData);
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal menyimpan kategori");
     }
   };
 
+  // 🔹 Hapus kategori
   const handleDelete = async (id: string) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus kategori ini?")) return;
-
     try {
-      const res = await fetch("/api/categories", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      });
+      const res = await fetch(`/api/categories/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Gagal menghapus kategori");
 
-      const result = await res.json();
-
-      if (!res.ok) {
-        setAlert({
-          type: "error",
-          title: "Gagal Menghapus",
-          message: result.error || "Terjadi kesalahan saat menghapus kategori",
-        });
-        return;
-      }
-
-      setAlert({
-        type: "success",
-        title: "Dihapus",
-        message: "Kategori berhasil dihapus!",
-      });
-
-      await fetchCategories();
-    } catch (error) {
-      console.error("Error deleting category:", error);
-      setAlert({
-        type: "error",
-        title: "Gagal",
-        message: "Tidak dapat menghapus kategori",
-      });
+      toast.success("Kategori berhasil dihapus");
+      setCategories((prev) => prev.filter((cat) => cat.id !== id));
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal menghapus kategori");
     }
   };
 
-  const totalBrandPartners = categories.reduce((sum, cat) => sum + (cat.brandPartners?.length || 0), 0);
-
+  // 🔹 Loading state
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-          <p className="mt-2 text-sm text-muted-foreground">Memuat data...</p>
-        </div>
+      <div className="flex justify-center items-center py-20">
+        <p className="text-gray-500">Memuat data kategori...</p>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Kelola Kategori</h1>
-          <p className="text-sm text-muted-foreground mt-1">Kelola kategori produk dan brand partner</p>
-        </div>
-        <Button onClick={() => setOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Tambah Kategori
+    <section className="p-4 md:p-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Manajemen Kategori</h1>
+        <Button
+          onClick={() => {
+            setEditData(undefined);
+            setOpen(true);
+          }}
+          className="flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" /> Tambah Kategori
         </Button>
       </div>
-
-      {alert && <CategoryAlert type={alert.type} title={alert.title} message={alert.message} />}
-
-      <CategoryStats totalCategories={categories.length} totalBrandPartners={totalBrandPartners} />
 
       <CategoryTable
         categories={categories}
         onEdit={(cat) => {
-          setEditData(cat);
+         setEditData({
+           id: cat.id,
+           nama: cat.nama,
+           brandPartners: cat.brands,
+         });
+
           setOpen(true);
         }}
         onDelete={handleDelete}
@@ -190,13 +124,13 @@ export default function ManageCategories() {
           open={open}
           onClose={() => {
             setOpen(false);
-            setEditData(null);
+            setEditData(undefined);
           }}
           onSave={handleSave}
           initialData={editData}
           brands={brands}
         />
       )}
-    </div>
+    </section>
   );
 }

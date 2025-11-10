@@ -9,34 +9,51 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// ✅ Definisikan tipe data brand partner
+interface BrandPartner {
+  id: string;
+  nama: string;
+}
+
+// ✅ Definisikan tipe data form kategori
+interface CategoryFormData {
+  nama: string;
+  brandPartnerIds: string[];
+}
+
+// ✅ Definisikan data awal kategori untuk edit
+interface CategoryInitialData {
+  id?: string;
+  nama: string;
+  brandPartners?: BrandPartner[];
+}
+
+// ✅ Props untuk komponen dialog
 interface CategoryDialogProps {
   open: boolean;
   onClose: () => void;
-  onSave: (data: any) => Promise<void>;
-  initialData?: any;
-  brands: any[];
+  onSave: (data: CategoryFormData) => Promise<void>;
+  initialData?: CategoryInitialData;
+  brands: BrandPartner[];
 }
 
 export function CategoryDialog({ open, onClose, onSave, initialData, brands }: CategoryDialogProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CategoryFormData>({
     nama: "",
-    brandPartnerIds: [] as string[],
+    brandPartnerIds: [],
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ nama?: string }>({});
 
+  // ✅ Update form saat edit atau tambah baru
   useEffect(() => {
     if (initialData) {
       setFormData({
         nama: initialData.nama || "",
-        brandPartnerIds: initialData.brandPartners?.map((b: any) => b.id) || [],
+        brandPartnerIds: initialData.brandPartners?.map((b) => b.id) || [],
       });
     } else {
-      // Reset form when opening for new category
-      setFormData({
-        nama: "",
-        brandPartnerIds: [],
-      });
+      setFormData({ nama: "", brandPartnerIds: [] });
     }
     setErrors({});
   }, [initialData, open]);
@@ -48,18 +65,16 @@ export function CategoryDialog({ open, onClose, onSave, initialData, brands }: C
     }));
   };
 
-  const validateForm = () => {
+  const validateForm = (): boolean => {
     const newErrors: { nama?: string } = {};
-
     if (!formData.nama.trim()) {
       newErrors.nama = "Nama kategori harus diisi";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (): Promise<void> => {
     if (!validateForm()) return;
 
     setLoading(true);
@@ -81,6 +96,7 @@ export function CategoryDialog({ open, onClose, onSave, initialData, brands }: C
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          {/* Nama kategori */}
           <div className="space-y-2">
             <Label htmlFor="nama">
               Nama Kategori <span className="text-red-500">*</span>
@@ -98,6 +114,7 @@ export function CategoryDialog({ open, onClose, onSave, initialData, brands }: C
             {errors.nama && <p className="text-sm text-red-500">{errors.nama}</p>}
           </div>
 
+          {/* Brand Partner Selection */}
           <div className="space-y-2">
             <Label>Brand Partner (Opsional)</Label>
             <div className="text-xs text-gray-500 mb-2">Pilih satu atau lebih brand partner</div>

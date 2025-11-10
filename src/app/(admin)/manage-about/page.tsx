@@ -39,7 +39,7 @@ interface AboutFormData {
 }
 
 export default function ManageAboutPage() {
-  const [about, setAbout] = useState<AboutWithPartners | null>(null);
+  const [, setAbout] = useState<AboutWithPartners | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
@@ -59,10 +59,7 @@ export default function ManageAboutPage() {
 
   const { fields: layananFields, append: appendLayanan, remove: removeLayanan } = useFieldArray({ control: form.control, name: "layanan" });
 
-  useEffect(() => {
-    fetchAbout();
-  }, []);
-
+useEffect(() => {
   const fetchAbout = async () => {
     try {
       const response = await fetch("/api/about");
@@ -91,6 +88,39 @@ export default function ManageAboutPage() {
       setLoading(false);
     }
   };
+
+  fetchAbout();
+}, [form, toast]);
+
+
+  // const fetchAbout = async () => {
+  //   try {
+  //     const response = await fetch("/api/about");
+  //     if (!response.ok) throw new Error("Failed to fetch");
+
+  //     const data = await response.json();
+  //     if (data) {
+  //       setAbout(data);
+  //       form.reset({
+  //         title: data.title || "",
+  //         deskripsi: data.deskripsi || "",
+  //         image: data.image || "",
+  //         visi: data.visi || "",
+  //         misi: data.misi?.split("\n").map((item: string) => ({ value: item.trim() })) || [{ value: "" }],
+  //         layanan: data.layanan?.split("\n").map((item: string) => ({ value: item.trim() })) || [{ value: "" }],
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to fetch about data:", error);
+  //     toast({
+  //       title: "Error",
+  //       description: "Gagal memuat data about",
+  //       variant: "destructive",
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const onSubmit = async (data: AboutFormData) => {
     setSubmitting(true);
@@ -179,7 +209,7 @@ export default function ManageAboutPage() {
               <FormField
                 control={form.control}
                 name="image"
-                render={({ field }) => (
+                render={() => (
                   <FormItem>
                     <FormControl>
                       <ImageUploadInput label="Gambar Banner" value={form.watch("image") ?? ""} onChange={(url) => form.setValue("image", url, { shouldValidate: true })} placeholder="https://example.com/banner.jpg" />

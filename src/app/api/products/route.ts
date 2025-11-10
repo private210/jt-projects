@@ -1,6 +1,32 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+// 🧩 Tipe data input yang dikirim dari frontend
+interface ProductSpecInput {
+  deskripsi_spec: string;
+  image?: string | null;
+}
+
+interface ProductOptionInput {
+  warna: string;
+  variant: string;
+  hargaAsli: string | number;
+  hargaJual: string | number;
+  stock: string | number;
+  images?: string[];
+  specs?: ProductSpecInput[];
+}
+
+interface ProductCreateInput {
+  nama: string;
+  deskripsi: string;
+  isFavorite?: boolean;
+  categoryIds?: string[];
+  images?: string[];
+  options?: ProductOptionInput[];
+}
+
+// ✅ GET /api/products
 export async function GET() {
   try {
     const products = await prisma.product.findMany({
@@ -20,16 +46,19 @@ export async function GET() {
       },
       orderBy: { createdAt: "desc" },
     });
+
     return NextResponse.json(products);
   } catch (error) {
-    console.error("Error fetching products:", error);
+    console.error("❌ Error fetching products:", error);
     return NextResponse.json({ error: "Gagal memuat produk" }, { status: 500 });
   }
 }
 
+// ✅ POST /api/products
 export async function POST(req: Request) {
   try {
-    const { nama, deskripsi, isFavorite, categoryIds, images, options } = await req.json();
+    const body: ProductCreateInput = await req.json();
+    const { nama, deskripsi, isFavorite, categoryIds, images, options } = body;
 
     const product = await prisma.product.create({
       data: {
@@ -37,12 +66,12 @@ export async function POST(req: Request) {
         deskripsi,
         isFavorite: Boolean(isFavorite),
         categories: {
-          connect: (categoryIds || []).map((id: string) => ({ id })),
+          connect: (categoryIds ?? []).map((id) => ({ id })),
         },
         ...(images?.length
           ? {
               images: {
-                create: images.map((url: string, i: number) => ({
+                create: images.map((url, i) => ({
                   imageUrl: url,
                   urutan: i,
                 })),
@@ -52,16 +81,16 @@ export async function POST(req: Request) {
         ...(options?.length
           ? {
               options: {
-                create: options.map((opt: any) => ({
+                create: options.map((opt) => ({
                   warna: opt.warna,
                   variant: opt.variant,
-                  hargaAsli: parseFloat(opt.hargaAsli),
-                  hargaJual: parseFloat(opt.hargaJual),
-                  stock: parseInt(opt.stock),
+                  hargaAsli: Number(opt.hargaAsli),
+                  hargaJual: Number(opt.hargaJual),
+                  stock: Number(opt.stock),
                   ...(opt.images?.length
                     ? {
                         images: {
-                          create: opt.images.map((url: string, i: number) => ({
+                          create: opt.images.map((url, i) => ({
                             imageUrl: url,
                             urutan: i,
                           })),
@@ -71,9 +100,9 @@ export async function POST(req: Request) {
                   ...(opt.specs?.length
                     ? {
                         specs: {
-                          create: opt.specs.map((s: any) => ({
+                          create: opt.specs.map((s) => ({
                             deskripsi_spec: s.deskripsi_spec,
-                            image: s.image || null,
+                            image: s.image ?? null,
                           })),
                         },
                       }
@@ -101,7 +130,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(product);
   } catch (error) {
-    console.error("Error creating product:", error);
+    console.error("❌ Error creating product:", error);
     return NextResponse.json({ error: "Gagal menambah produk" }, { status: 500 });
   }
 }

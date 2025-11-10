@@ -7,9 +7,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
-import { Home } from "@prisma/client";
 import { ImageUploadInput } from "@/components/ui/image-upload-input";
 
+/* ---------- Local Toast Fallback ---------- */
 function useToast() {
   const toast = ({ title, description, variant }: { title?: string; description?: string; variant?: string }) => {
     if (typeof window !== "undefined") {
@@ -23,14 +23,15 @@ function useToast() {
   return { toast };
 }
 
+/* ---------- Interface ---------- */
 interface HomeFormData {
   title: string;
   deskripsi: string;
   image: string;
 }
 
+/* ---------- Component ---------- */
 export default function ManageHomePage() {
-  const [home, setHome] = useState<Home | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
@@ -43,36 +44,36 @@ export default function ManageHomePage() {
     },
   });
 
+  /* ---------- useEffect diperbaiki ---------- */
   useEffect(() => {
-    fetchHome();
-  }, []);
+    const fetchHome = async () => {
+      try {
+        const response = await fetch("/api/home");
+        if (!response.ok) throw new Error("Failed to fetch");
 
-  const fetchHome = async () => {
-    try {
-      const response = await fetch("/api/home");
-      if (!response.ok) throw new Error("Failed to fetch");
+        const data = await response.json();
 
-      const data = await response.json();
-      if (data) {
-        setHome(data);
         form.reset({
-          title: data.title || "",
-          deskripsi: data.deskripsi || "",
-          image: data.image || "",
+          title: data?.title || "",
+          deskripsi: data?.deskripsi || "",
+          image: data?.image || "",
         });
+      } catch (error) {
+        console.error("Failed to fetch home data:", error);
+        toast({
+          title: "Error",
+          description: "Gagal memuat data home",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Failed to fetch home data:", error);
-      toast({
-        title: "Error",
-        description: "Gagal memuat data home",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
+    fetchHome();
+  }, [form, toast]);
+
+  /* ---------- Submit Handler ---------- */
   const onSubmit = async (data: HomeFormData) => {
     setSubmitting(true);
     try {
@@ -83,9 +84,6 @@ export default function ManageHomePage() {
       });
 
       if (!response.ok) throw new Error("Failed to update");
-
-      const updated = await response.json();
-      setHome(updated);
 
       toast({
         title: "Berhasil",
@@ -103,6 +101,7 @@ export default function ManageHomePage() {
     }
   };
 
+  /* ---------- UI ---------- */
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -134,6 +133,7 @@ export default function ManageHomePage() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="deskripsi"
@@ -147,7 +147,9 @@ export default function ManageHomePage() {
                   </FormItem>
                 )}
               />
+
               <ImageUploadInput label="Gambar Banner" value={form.getValues("image")} onChange={(url) => form.setValue("image", url)} placeholder="https://example.com/banner.jpg" />
+
               <Button type="submit" disabled={submitting}>
                 {submitting ? "Menyimpan..." : "Perbarui Data"}
               </Button>

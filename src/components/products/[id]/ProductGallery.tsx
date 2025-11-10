@@ -31,7 +31,7 @@ export default function ProductGallery({ product }: ProductGalleryProps) {
     <>
       <div className="flex flex-col gap-4">
         {/* Gambar Utama */}
-        <div className="relative w-full aspect-[1/1] max-h-[450px] bg-white flex items-center justify-center rounded-lg shadow-xl overflow-hidden cursor-zoom-in group" onClick={() => setIsZoomed(true)}>
+        <div className="relative w-full aspect-square max-h-[450px] bg-white flex items-center justify-center rounded-lg shadow-xl overflow-hidden cursor-zoom-in group" onClick={() => setIsZoomed(true)}>
           <Image src={selectedImage || "/placeholder.png"} alt={product.nama} fill className="object-contain transition-all duration-300" priority />
           {/* Overlay efek hover */}
           <div className="absolute inset-0 bg-white/0 group-hover:bg-white/30 transition-all duration-300" />
@@ -43,7 +43,7 @@ export default function ProductGallery({ product }: ProductGalleryProps) {
             <button
               key={idx}
               onClick={() => setSelectedImage(img)}
-              className={`relative w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 flex-shrink-0 bg-white transition ${selectedImage === img ? "border-red-500" : "border-gray-300"}`}
+              className={`relative w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 shrink-0 bg-white transition ${selectedImage === img ? "border-red-500" : "border-gray-300"}`}
             >
               <Image src={img || "/placeholder.png"} alt={`${product.nama} - ${idx + 1}`} fill className="object-contain" />
             </button>
@@ -56,7 +56,7 @@ export default function ProductGallery({ product }: ProductGalleryProps) {
         {isZoomed && (
           <motion.div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsZoomed(false)}>
             <motion.div
-              className="relative w-[90vw] md:w-[70vw] lg:w-[50vw] aspect-[1/1] bg-white rounded-lg overflow-hidden shadow-2xl cursor-zoom-out"
+              className="relative w-[90vw] md:w-[70vw] lg:w-[50vw] aspect-square bg-white rounded-lg overflow-hidden shadow-2xl cursor-zoom-out"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}

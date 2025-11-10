@@ -66,9 +66,49 @@ export default function ManageContactPage() {
   });
 
   /* ---------- Fetch Initial Data ---------- */
-  useEffect(() => {
-    loadData();
-  }, []);
+ useEffect(() => {
+   const fetchData = async () => {
+     try {
+       const [contactRes, marketplaceRes] = await Promise.all([fetch("/api/contacts"), fetch("/api/marketplaces")]);
+
+       if (!contactRes.ok || !marketplaceRes.ok) {
+         throw new Error("Gagal memuat data");
+       }
+
+       const contact = await contactRes.json();
+       const marketplace = await marketplaceRes.json();
+
+       form.reset({
+         facebook: contact?.facebook || "",
+         instagram: contact?.instagram || "",
+         youtube: contact?.youtube || "",
+         tiktok: contact?.tiktok || "",
+         whatsapp: contact?.whatsapp || "",
+         linkedin: contact?.linkedin || "",
+         whatsappNumber: contact?.nomor_wa || "",
+         email: contact?.email || "",
+         address: contact?.alamat || "",
+         mapsLink: contact?.maps_link || "",
+         operationalHours: contact?.jam_operasional || "",
+         tokopedia: marketplace?.tokopedia || "",
+         shopee: marketplace?.shopee || "",
+         tiktokshop: marketplace?.tiktokshop || "",
+       });
+     } catch (error) {
+       console.error("Failed to fetch data:", error);
+       toast({
+         title: "Error",
+         description: "Gagal memuat data. Silakan refresh halaman.",
+         variant: "destructive",
+       });
+     } finally {
+       setLoading(false);
+     }
+   };
+
+   fetchData();
+ }, [form, toast]);
+
 
   const loadData = async () => {
     try {

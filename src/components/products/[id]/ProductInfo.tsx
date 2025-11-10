@@ -190,7 +190,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
                 href={marketplace.tiktokshop}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-gradient-to-r from-black to-red-600 hover:from-gray-900 hover:to-red-700 text-white font-semibold py-3 rounded-lg text-center transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                className="bg-linear-to-r from-black to-red-600 hover:from-gray-900 hover:to-red-700 text-white font-semibold py-3 rounded-lg text-center transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
               >
                 TikTok Shop
               </a>
@@ -200,7 +200,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
                 href={marketplace.shopee}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-3 rounded-lg text-center transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                className="bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-3 rounded-lg text-center transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
               >
                 Shopee
               </a>
@@ -210,7 +210,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
                 href={marketplace.tokopedia}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 rounded-lg text-center transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                className="bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 rounded-lg text-center transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
               >
                 Tokopedia
               </a>

@@ -4,9 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, Package } from "lucide-react";
 
+// ✅ Definisikan tipe data untuk brand partner
+interface BrandPartner {
+  id: string;
+  nama: string;
+}
+
+// ✅ Definisikan tipe untuk kategori
+interface Category {
+  id: string;
+  nama: string;
+  brands?: BrandPartner[];
+  productCount?: number;
+}
+
+// ✅ Props tabel kategori
 interface CategoryTableProps {
-  categories: any[];
-  onEdit: (cat: any) => void;
+  categories: Category[];
+  onEdit: (cat: Category) => void;
   onDelete: (id: string) => void;
 }
 
@@ -23,6 +38,7 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
             </tr>
           </thead>
+
           <tbody className="bg-white divide-y divide-gray-200">
             {categories.length === 0 ? (
               <tr>
@@ -30,7 +46,7 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
                   <div className="flex flex-col items-center justify-center text-gray-500">
                     <Package className="h-12 w-12 mb-2 text-gray-300" />
                     <p className="text-sm font-medium">Belum ada kategori</p>
-                    <p className="text-xs text-gray-400 mt-1">Klik tombol "Tambah Kategori" untuk memulai</p>
+                    <p className="text-xs text-gray-400 mt-1">Klik tombol &quot;Tambah Kategori&quot; untuk memulai</p>
                   </div>
                 </td>
               </tr>
@@ -40,10 +56,11 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{cat.nama}</div>
                   </td>
+
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-1">
                       {cat.brands && cat.brands.length > 0 ? (
-                        cat.brands.map((b: any) => (
+                        cat.brands.map((b) => (
                           <Badge key={b.id} variant="secondary" className="text-xs">
                             {b.nama}
                           </Badge>
@@ -53,9 +70,11 @@ export function CategoryTable({ categories, onEdit, onDelete }: CategoryTablePro
                       )}
                     </div>
                   </td>
+
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">{cat.productCount || 0} produk</span>
+                    <span className="text-sm text-gray-600">{cat.productCount ?? 0} produk</span>
                   </td>
+
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end gap-2">
                       <Button variant="ghost" size="sm" onClick={() => onEdit(cat)} className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">

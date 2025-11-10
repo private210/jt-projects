@@ -5,11 +5,30 @@ import { useSession } from "next-auth/react";
 import UserForm from "./UserForm";
 import Image from "next/image";
 
+// ✅ Definisikan tipe data user
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  role: "EDITOR" | "ADMIN" | "DEVELOPER";
+  image?: string | null;
+  createdAt: string;
+}
+
+// ✅ Tipe tambahan untuk session user
+interface SessionUser {
+  id: string;
+  email: string;
+  name?: string;
+  image?: string;
+  role?: "EDITOR" | "ADMIN" | "DEVELOPER";
+}
+
 export default function UserTable() {
   const { data: session } = useSession();
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editUser, setEditUser] = useState<any | null>(null);
+  const [editUser, setEditUser] = useState<User | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
 
   const fetchUsers = async () => {
@@ -17,7 +36,7 @@ export default function UserTable() {
     try {
       const res = await fetch("/api/users", { cache: "no-store" });
       if (!res.ok) throw new Error("Gagal memuat data user");
-      const data = await res.json();
+      const data: User[] = await res.json();
       setUsers(data);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -27,7 +46,9 @@ export default function UserTable() {
   };
 
   const handleDelete = async (id: string, email: string) => {
-    if ((session?.user as any)?.id === id) {
+    const currentUser = session?.user as SessionUser | undefined;
+
+    if (currentUser?.id === id) {
       alert("Anda tidak dapat menghapus akun sendiri!");
       return;
     }
@@ -40,6 +61,7 @@ export default function UserTable() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       });
+
       const data = await res.json();
 
       if (!res.ok) {
@@ -55,7 +77,7 @@ export default function UserTable() {
     }
   };
 
-  const handleEdit = (user: any) => {
+  const handleEdit = (user: User) => {
     setEditUser(user);
     setShowEditModal(true);
   };
@@ -96,7 +118,8 @@ export default function UserTable() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {users.map((user) => {
-                const isCurrentUser = (session?.user as any)?.id === user.id;
+                const currentUser = session?.user as SessionUser | undefined;
+                const isCurrentUser = currentUser?.id === user.id;
 
                 return (
                   <tr key={user.id} className={isCurrentUser ? "bg-blue-50" : "hover:bg-gray-50"}>
@@ -105,7 +128,7 @@ export default function UserTable() {
                         {user.image ? (
                           <Image src={user.image} alt={user.username} width={40} height={40} className="h-10 w-10 rounded-full object-cover mr-3 border" />
                         ) : (
-                          <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold mr-3">{user.username?.charAt(0).toUpperCase()}</div>
+                          <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold mr-3">{user.username.charAt(0).toUpperCase()}</div>
                         )}
                         <div>
                           <div className="text-sm font-medium text-gray-900">

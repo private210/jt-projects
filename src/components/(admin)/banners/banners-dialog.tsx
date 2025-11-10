@@ -1,5 +1,5 @@
 "use client";
-import { useState, FormEvent } from "react";
+import { FormEvent } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +35,7 @@ export default function BannerDialog({ open, onOpenChange, editingBanner, formDa
         <Button onClick={() => onOpenChange(true)}>Tambah Banner</Button>
       </DialogTrigger>
 
-      <DialogContent className="!max-w-[600px] max-h-[90vh] overflow-y-auto rounded-xl">
+      <DialogContent className="max-w-[600px]! max-h-[90vh] overflow-y-auto rounded-xl">
         <DialogHeader>
           <DialogTitle>{editingBanner ? "Edit Banner" : "Tambah Banner Baru"}</DialogTitle>
           <DialogDescription>{editingBanner ? "Perbarui informasi banner" : "Tambahkan banner baru untuk promosi"}</DialogDescription>
